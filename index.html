@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Wartung">
+<title>Wartungsübersicht – Elektro Krieg</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#1c2430;--surface:#242f3d;--surface2:#2c3a4d;--border:#3a4a5c;
+  --text:#e8ecf1;--muted:#9aa1ab;--accent:#4a9eff;
+  --ok:#2ecc71;--err:#e74c3c;--warn:#f1c40f;
+  --radius:10px;--max:720px;
+}
+body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;
+  min-height:100vh;padding-bottom:40px;}
+a{color:inherit;text-decoration:none;}
+
+/* HEADER */
+.app-header{background:var(--surface);border-bottom:1px solid var(--border);
+  padding:12px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;}
+.app-header h1{font-size:1.1rem;font-weight:700;flex:1;letter-spacing:.3px;}
+#syncStatus{font-size:.75rem;padding:3px 8px;border-radius:20px;background:var(--surface2);
+  color:var(--muted);white-space:nowrap;}
+#syncStatus.ok{color:var(--ok);}
+#syncStatus.err{color:var(--err);}
+#syncStatus.busy{color:var(--warn);}
+#syncStatus.off{color:var(--muted);}
+.icon-btn{background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;
+  padding:4px 6px;border-radius:6px;}
+.icon-btn:hover{background:var(--surface2);color:var(--text);}
+
+/* TABS */
+.tab-bar{display:flex;background:var(--surface);border-bottom:1px solid var(--border);}
+.tab-btn{flex:1;padding:11px;font-size:.9rem;font-weight:600;background:none;border:none;
+  color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;transition:.15s;}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+/* CONTROLS */
+.plan-controls{padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+  background:var(--surface);border-bottom:1px solid var(--border);}
+.year-sel{background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  padding:6px 10px;border-radius:8px;font-size:.9rem;cursor:pointer;}
+.q-tabs{display:flex;gap:4px;}
+.q-btn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);
+  padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600;transition:.15s;}
+.q-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.filter-toggle{display:flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted);
+  margin-left:auto;cursor:pointer;}
+.filter-toggle input{cursor:pointer;width:15px;height:15px;}
+
+/* MAIN CONTENT */
+.main{max-width:var(--max);margin:0 auto;padding:12px 10px;}
+
+/* ORT GROUP */
+.ort-group{margin-bottom:4px;}
+.ort-label{font-size:.75rem;font-weight:700;color:var(--muted);letter-spacing:.8px;
+  text-transform:uppercase;padding:10px 4px 4px;}
+
+/* KUNDE CARD */
+.kunde-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:12px;margin-bottom:8px;transition:.15s;}
+.kunde-card.all-done{border-color:#2ecc71;background:rgba(46,204,113,.06);}
+.kunde-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.kunde-name{font-weight:600;font-size:.95rem;flex:1;}
+.kunde-zusatz{font-size:.8rem;color:var(--muted);}
+.btn-pruef{background:var(--surface2);border:1px solid var(--border);color:var(--muted);
+  padding:4px 10px;border-radius:6px;font-size:.78rem;cursor:pointer;white-space:nowrap;
+  text-decoration:none;display:inline-block;transition:.15s;}
+.btn-pruef:hover{border-color:var(--accent);color:var(--accent);}
+.gewerk-badges{display:flex;flex-wrap:wrap;gap:6px;}
+
+/* GEWERK BADGE */
+.gw-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;
+  border-radius:20px;font-size:.8rem;font-weight:600;cursor:pointer;
+  border:2px solid transparent;transition:.15s;user-select:none;}
+.gw-badge.offen{background:var(--surface2);border-color:var(--border);color:var(--text);}
+.gw-badge.offen:hover{border-color:var(--accent);}
+.gw-badge.done{color:#fff;}
+.gw-badge.done::before{content:'✓ ';}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted);}
+.empty-state .big{font-size:2rem;margin-bottom:8px;}
+
+/* STAMMDATEN */
+.stamm-search{width:100%;background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);padding:10px 14px;border-radius:var(--radius);font-size:.9rem;margin-bottom:12px;}
+.stamm-search::placeholder{color:var(--muted);}
+.stamm-stamm-row{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:10px 14px;margin-bottom:6px;}
+.stamm-row-name{font-weight:600;font-size:.9rem;margin-bottom:4px;}
+.stamm-row-sub{font-size:.78rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px;}
+.gw-mini{background:var(--surface2);border:1px solid var(--border);padding:2px 7px;
+  border-radius:10px;font-size:.72rem;}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;
+  display:flex;align-items:flex-end;justify-content:center;}
+.modal-bg[hidden]{display:none;}
+.modal{background:var(--surface);border-radius:var(--radius) var(--radius) 0 0;
+  width:100%;max-width:var(--max);max-height:85vh;display:flex;flex-direction:column;
+  overflow:hidden;}
+.modal-header{padding:16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;}
+.modal-header h2{flex:1;font-size:1rem;font-weight:700;}
+.modal-close{background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;
+  line-height:1;padding:0 4px;}
+.modal-body{padding:16px;overflow-y:auto;flex:1;}
+.modal-footer{padding:14px 16px;border-top:1px solid var(--border);
+  display:flex;gap:8px;flex-wrap:wrap;}
+.check-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;
+  border-bottom:1px solid var(--border);cursor:pointer;}
+.check-item:last-child{border-bottom:none;}
+.check-item input[type=checkbox]{width:18px;height:18px;accent-color:var(--ok);
+  flex-shrink:0;cursor:pointer;margin-top:1px;}
+.check-item label{font-size:.9rem;cursor:pointer;flex:1;}
+.check-item.checked label{color:var(--muted);text-decoration:line-through;}
+.modal-done-banner{background:rgba(46,204,113,.15);border:1px solid var(--ok);
+  border-radius:8px;padding:10px 14px;color:var(--ok);font-weight:600;
+  font-size:.88rem;margin-bottom:12px;}
+.btn-primary{background:var(--accent);border:none;color:#fff;padding:10px 20px;
+  border-radius:8px;font-size:.9rem;font-weight:600;cursor:pointer;flex:1;}
+.btn-primary:hover{filter:brightness(1.1);}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;}
+.btn-secondary{background:var(--surface2);border:1px solid var(--border);color:var(--muted);
+  padding:10px 16px;border-radius:8px;font-size:.9rem;cursor:pointer;}
+.btn-secondary:hover{color:var(--text);}
+.btn-danger{background:transparent;border:1px solid var(--err);color:var(--err);
+  padding:10px 16px;border-radius:8px;font-size:.9rem;cursor:pointer;}
+
+/* SETTINGS */
+.settings-form{display:flex;flex-direction:column;gap:12px;}
+.form-group{display:flex;flex-direction:column;gap:4px;}
+.form-group label{font-size:.8rem;color:var(--muted);font-weight:600;}
+.form-group input{background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  padding:9px 12px;border-radius:8px;font-size:.9rem;}
+.form-group input:focus{outline:none;border-color:var(--accent);}
+.settings-sep{border:none;border-top:1px solid var(--border);margin:4px 0;}
+.settings-hint{font-size:.78rem;color:var(--muted);}
+.test-result{font-size:.82rem;padding:6px 0;}
+.test-result.ok{color:var(--ok);}
+.test-result.err{color:var(--err);}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);padding:10px 20px;border-radius:20px;font-size:.88rem;
+  z-index:300;pointer-events:none;transition:opacity .3s;}
+.toast.hidden{opacity:0;}
+
+/* Footer */
+footer.app{text-align:center;padding:16px;font-size:.75rem;color:var(--muted);}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <h1>Wartungsübersicht</h1>
+  <span id="syncStatus" class="off">Nicht verbunden</span>
+  <button class="icon-btn" id="settingsBtn" title="Einstellungen">⚙</button>
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" data-tab="plan">Quartalsplan</button>
+  <button class="tab-btn" data-tab="stamm">Stammdaten</button>
+</div>
+
+<div id="tabPlan">
+  <div class="plan-controls">
+    <select class="year-sel" id="yearSel"></select>
+    <div class="q-tabs">
+      <button class="q-btn" data-q="0">Q1</button>
+      <button class="q-btn" data-q="1">Q2</button>
+      <button class="q-btn" data-q="2">Q3</button>
+      <button class="q-btn" data-q="3">Q4</button>
+    </div>
+    <label class="filter-toggle">
+      <input type="checkbox" id="filterOpen"> Nur offene
+    </label>
+  </div>
+  <div class="main">
+    <div id="kundenListe"></div>
+  </div>
+</div>
+
+<div id="tabStamm" hidden>
+  <div class="main">
+    <input class="stamm-search" id="stammSearch" type="search" placeholder="Suche: Ort, Objekt…">
+    <div id="stammListe"></div>
+  </div>
+</div>
+
+<!-- Checklist Modal -->
+<div class="modal-bg" id="checkModal" hidden>
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Wartung</h2>
+      <button class="modal-close" id="modalClose">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="doneBanner" class="modal-done-banner" hidden>✓ Diese Wartung wurde als erledigt markiert.</div>
+      <div id="checkItems"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" id="markDoneBtn">Als erledigt markieren</button>
+      <button class="btn-danger" id="markUndoneBtn" hidden>Zurücksetzen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-bg" id="settingsModal" hidden>
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Einstellungen</h2>
+      <button class="modal-close" id="settingsClose">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="settings-form">
+        <p class="settings-hint">GitHub-Synchronisation – gleiches Daten-Repo wie die Prüflisten-App.</p>
+        <div class="form-group">
+          <label>GitHub-Benutzername / Organisation</label>
+          <input id="ghOwner" placeholder="z. B. elektrokrieg" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Daten-Repository</label>
+          <input id="ghRepo" placeholder="melderpruefliste-daten" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Branch</label>
+          <input id="ghBranch" placeholder="main" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Personal Access Token (fine-grained, Contents R/W)</label>
+          <input id="ghToken" type="password" placeholder="github_pat_…" autocomplete="off">
+        </div>
+        <div class="test-result" id="settingsTest"></div>
+        <hr class="settings-sep">
+        <p class="settings-hint">Verknüpfte Apps (URL zur jeweiligen App)</p>
+        <div class="form-group">
+          <label>Prüflisten-App URL</label>
+          <input id="pruefUrl" placeholder="../melder-pruefliste/" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Regiebericht-App URL</label>
+          <input id="regieUrl" placeholder="../regiebericht/" autocomplete="off">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" id="settingsSave">Speichern</button>
+      <button class="btn-secondary" id="settingsTestBtn">Verbindung testen</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast hidden" id="toast"></div>
+<footer class="app">Elektro Krieg Meiningen · Wartungsübersicht v1.0.0</footer>
+
+<script type="application/json" id="wartung-kunden">[{"id":"apfelstaedt-pflegeheim-awo","ort":"Apfelstädt","objekt":"Pflegeheim","zusatz":"AWO","gewerke":{"Sibel":[true,false,false,false],"Fluchttür":[false,true,false,false],"RWA":[false,false,false,true]}},{"id":"asbach-kita-grundschule","ort":"Asbach","objekt":"Kita","zusatz":"Grundschule","gewerke":{"Sibel":[false,false,false,true],"RWA":[false,false,false,true]}},{"id":"bad-brueckenau-seniorenzentrum","ort":"Bad Brückenau","objekt":"Seniorenzentrum","zusatz":"","gewerke":{"Sibel":[false,false,false,true],"RWA":[false,false,false,true],"Fluchttür":[false,false,false,true],"SWR":[false,false,false,true]}},{"id":"bad-langensalza-pflegeheim","ort":"Bad Langensalza","objekt":"Pflegeheim","zusatz":"","gewerke":{"Sibel":[false,true,false,false],"Fluchttür":[false,true,false,false]}},{"id":"bad-salzungen-str-der-einheit-bva-wohnblock","ort":"Bad Salzungen","objekt":"Str. der Einheit","zusatz":"BVA Wohnblock","gewerke":{"RWA":[false,true,false,true]}},{"id":"bad-sulza-pflegeheim","ort":"Bad Sulza","objekt":"Pflegeheim","zusatz":"","gewerke":{"RWA":[true,false,false,false],"Fluchttür":[false,true,false,false],"Sibel":[false,false,true,false]}},{"id":"bad-tabarz-seniorenzentrum","ort":"Bad Tabarz","objekt":"Seniorenzentrum","zusatz":"","gewerke":{"Sibel":[false,true,false,false]}},{"id":"barchfeld-sport--und-mehrzweckhalle","ort":"Barchfeld","objekt":"Sport- und Mehrzweckhalle","zusatz":"","gewerke":{"RWA":[false,false,false,true]}},{"id":"bauerbach-schillermuseum","ort":"Bauerbach","objekt":"Schillermuseum","zusatz":"","gewerke":{}},{"id":"benshausen-grundschule","ort":"Benshausen","objekt":"Grundschule","zusatz":"","gewerke":{"RWA":[true,false,false,false],"ELA":[true,false,false,false],"Sibel":[false,false,false,true],"EMA":[false,false,false,true]}},{"id":"bettenhausen-regelschule","ort":"Bettenhausen","objekt":"Regelschule","zusatz":"","gewerke":{"Sibel":[false,false,false,true],"EMA":[false,false,false,true]}},{"id":"bettenhausen-turnhalle","ort":"Bettenhausen","objekt":"Turnhalle","zusatz":"","gewerke":{"BMA":[true,false,false,false],"Sibel":[false,false,false,true]}},{"id":"bibra-gemeinschaftsschule","ort":"Bibra","objekt":"Gemeinschaftsschule","zusatz":"","gewerke":{"Sibel":[true,false,false,false],"ELA":[true,false,false,false],"EMA":[true,false,false,false],"RWA":[false,false,false,true]}},{"id":"breitungen-regelschule","ort":"Breitungen","objekt":"Regelschule","zusatz":"","gewerke":{"EMA":[true,false,false,false],"Sibel":[false,false,true,false]}},{"id":"brotterode-grundschule","ort":"Brotterode","objekt":"Grundschule","zusatz":"","gewerke":{"Sibel":[true,false,false,false],"EMA":[false,true,false,false]}},{"id":"dreissigacker-aifotec","ort":"Dreißigacker","objekt":"Aifotec","zusatz":"","gewerke":{"Sibel":[true,false,false,false]}},{"id":"dreissigacker-lebenshilfe-wolfsgrube","ort":"Dreißigacker","objekt":"Lebenshilfe","zusatz":"Wolfsgrube","gewerke":{"RWA":[true,false,false,false]}},{"id":"dreissigacker-pflegeheim-drk","ort":"Dreißigacker","objekt":"Pflegeheim","zusatz":"DRK","gewerke":{"SWR":[true,false,false,false],"RWA":[false,true,false,false],"Sibel":[false,false,false,true]}},{"id":"dreissigacker-mapal-ehemals-weisskopf","ort":"Dreißigacker","objekt":"MAPAL (ehemals Weisskopf)","zusatz":"","gewerke":{}},{"id":"dreissigacker-winkhaus","ort":"Dreißigacker","objekt":"Winkhaus","zusatz":"","gewerke":{}},{"id":"eisfeld-regelschule","ort":"Eisfeld","objekt":"Regelschule","zusatz":"","gewerke":{"Sibel":[true,false,false,false]}},{"id":"exdorf-multifunktionsgebaeude","ort":"Exdorf","objekt":"Multifunktionsgebäude","zusatz":"","gewerke":{"Sibel":[true,false,false,false]}},{"id":"fambach-grundschule","ort":"Fambach","objekt":"Grundschule","zusatz":"","gewerke":{"Sibel":[false,false,false,true]}},{"id":"floh-grundschule-regelschule","ort":"Floh","objekt":"Grundschule","zusatz":"Regelschule","gewerke":{"Sibel":[true,false,false,false]}},{"id":"frankenheim-grundschule","ort":"Frankenheim","objekt":"Grundschule","zusatz":"","gewerke":{"Sibel":[true,false,false,false],"ELA":[false,false,true,false],"RWA":[false,false,false,true]}},{"id":"friedrichroda-pflegeheim","ort":"Friedrichroda","objekt":"Pflegeheim","zusatz":"","gewerke":{}},{"id":"geisa-schloss","ort":"Geisa","objekt":"Schloss","zusatz":"","gewerke":{"Sibel":[true,false,false,false],"RWA":[true,false,false,false],"ELA":[false,false,true,false],"SWR":[false,false,true,false]}},{"id":"graefinau-angstedt-pflegeheim","ort":"Gräfinau Angstedt","objekt":"Pflegeheim","zusatz":"","gewerke":{"Sibel":[false,false,false,true]}},{"id":"hammelburg-seniorenzentrum","ort":"Hammelburg","objekt":"Seniorenzentrum","zusatz":"","gewerke":{"Sibel":[false,true,false,false]}},{"id":"hausen-roth-rhoen-park-hotel-haus-35-37","ort":"Hausen-Roth","objekt":"Rhön-Park-Hotel","zusatz":"Haus 35-37","gewerke":{"RWA":[true,false,false,false],"Sibel":[false,false,false,true]}},{"id":"hausen-roth-rhoen-park-hotel-rhoen-arena","ort":"Hausen-Roth","objekt":"Rhön-Park-Hotel","zusatz":"Rhön-Arena","gewerke":{"Sibel":[false,false,true,false]}},{"id":"hausen-roth-rhoen-park-hotel-th-zentrum","ort":"Hausen-Roth","objekt":"Rhön-Park-Hotel","zusatz":"TH Zentrum","gewerke":{"RWA":[true,false,false,false]}},{"id":"hausen-roth-rhoen-park-hotel-th-42-43-45-46","ort":"Hausen-Roth","objekt":"Rhön-Park-Hotel","zusatz":"TH 42/43/45/46","gewerke":{"RWA":[true,false,false,false]}},{"id":"hausen-roth-rhoen-park-hotel-th-21-22-23-24-25-31","ort":"Hausen-Roth","objekt":"Rhön-Park-Hotel","zusatz":"TH 21/22, 23/24, 25/31","gewerke":{"RWA":[true,false,false,false]}},{"id":"hausen-roth-rhoen-park-hotel-1213th1th2","ort":"Hausen-Roth","objekt":"Rhön-Park-Hotel","zusatz":"12+13+TH1+TH2","gewerke":{"Sibel":[false,true,false,false]}},{"id":"hausen-roth-rhoen-park-hotel-haus-2122","ort":"Hausen-Roth","objekt":"Rhön-Park-Hotel","zusatz":"Haus 21+22","gewerke":{"Sibel":[false,true,false,false]}},{"id":"hausen-roth-rhoen-park-hotel-haus-23","ort":"Hausen-Roth","objekt":"Rhön-Park-Hotel","zusatz":"Haus 23","gewerke":{"Sibel":[false,false,false,true]}},{"id":"hausen-roth-rhoen-park-hotel-haus-42-44","ort":"Hausen-Roth","objekt":"Rhön-Park-Hotel","zusatz":"Haus 42-44","gewerke":{"Sibel":[true,false,false,false]}},{"id":"hausen-roth-rhoen-park-hotel-haus-45-47","ort":"Hausen-Roth","objekt":"Rhön-Park-Hotel","zusatz":"Haus 45-47","gewerke":{"Sibel":[false,false,true,false],"RWA":[false,false,true,false]}},{"id":"hausen-roth-rhoen-park-hotel-rudis-abenteuerland","ort":"Hausen-Roth","objekt":"Rhön-Park-Hotel","zusatz":"Rudis Abenteuerland","gewerke":{"Sibel":[false,false,true,false]}},{"id":"helba-feuerwehr","ort":"Helba","objekt":"Feuerwehr","zusatz":"","gewerke":{"Sonstiges":[false,true,false,false]}},{"id":"heldburg-regelschule","ort":"Heldburg","objekt":"Regelschule","zusatz":"","gewerke":{"EMA":[false,true,false,false],"Sibel":[false,false,true,false],"ELA":[false,false,false,true]}},{"id":"helmershausen-landhaus","ort":"Helmershausen","objekt":"Landhaus","zusatz":"","gewerke":{"Sibel":[false,true,false,false],"SWR":[false,false,true,false]}},{"id":"henneberg-grundschule","ort":"Henneberg","objekt":"Grundschule","zusatz":"","gewerke":{"Sibel":[true,false,false,false]}},{"id":"henneberg-turnhalle","ort":"Henneberg","objekt":"Turnhalle","zusatz":"","gewerke":{"BMA":[false,true,false,false]}},{"id":"herpf-grundschule","ort":"Herpf","objekt":"Grundschule","zusatz":"","gewerke":{"Sibel":[true,false,false,false],"EMA":[false,false,true,false]}},{"id":"hildburghausen-gesundheitszentrum","ort":"Hildburghausen","objekt":"Gesundheitszentrum","zusatz":"","gewerke":{}},{"id":"hildburghausen-kreisarchiv","ort":"Hildburghausen","objekt":"Kreisarchiv","zusatz":"","gewerke":{}},{"id":"hildburghausen-pflegeheim-awo","ort":"Hildburghausen","objekt":"Pflegeheim","zusatz":"AWO","gewerke":{"Sibel":[false,false,false,true]}},{"id":"hohenroth-caritas-schulen","ort":"Hohenroth","objekt":"Caritas Schulen","zusatz":"","gewerke":{"RWA":[true,false,false,false],"ELA":[true,false,false,false]}},{"id":"hungen-seniorenzentrum","ort":"Hungen","objekt":"Seniorenzentrum","zusatz":"","gewerke":{"Fluchttür":[true,false,false,false],"Sibel":[false,false,false,true],"SWR":[false,false,false,true]}},{"id":"ilmenau-seniorenzentrum-am-huettenholz","ort":"Ilmenau","objekt":"Seniorenzentrum","zusatz":"Am Hüttenholz","gewerke":{"Sibel":[false,false,true,false]}},{"id":"ilmenau-seniorenzentrum-birkenhof","ort":"Ilmenau","objekt":"Seniorenzentrum","zusatz":"Birkenhof","gewerke":{}},{"id":"ilmenau-seniorenzentrum-heinrich-hetz-str-1","ort":"Ilmenau","objekt":"Seniorenzentrum","zusatz":"Heinrich Hetz Str. 1","gewerke":{"Sibel":[true,false,false,false]}},{"id":"ilmenau-wohnhaus-prof-dr-stamm-str-3","ort":"Ilmenau","objekt":"Wohnhaus","zusatz":"Prof.-Dr.-Stamm Str. 3","gewerke":{"RWA":[false,false,true,false]}},{"id":"ilmenau-wohnhaus-prof-dr-stamm-str-5","ort":"Ilmenau","objekt":"Wohnhaus","zusatz":"Prof.-Dr.-Stamm Str. 5","gewerke":{"RWA":[false,false,true,false]}},{"id":"ilmenau-wohnhaus-str-d-friedens-36","ort":"Ilmenau","objekt":"Wohnhaus","zusatz":"Str. d. Friedens 36","gewerke":{"RWA":[false,false,true,false]}},{"id":"ilmenau-wohnhaus-obertorstr-11","ort":"Ilmenau","objekt":"Wohnhaus","zusatz":"Obertorstr. 11","gewerke":{"RWA":[false,false,true,false]}},{"id":"juechsen-kulturhaus","ort":"Jüchsen","objekt":"Kulturhaus","zusatz":"","gewerke":{"BMA":[false,true,false,true]}},{"id":"kaltennordheim-germatrix","ort":"Kaltennordheim","objekt":"Germatrix","zusatz":"","gewerke":{"EMA":[false,false,false,true]}},{"id":"kaltensundheim-gymnasium","ort":"Kaltensundheim","objekt":"Gymnasium","zusatz":"","gewerke":{"Sibel":[true,false,false,false],"RWA":[true,false,false,false],"EMA":[true,false,false,false]}},{"id":"kaltensundheim-standesamt","ort":"Kaltensundheim","objekt":"Standesamt","zusatz":"","gewerke":{"RWA":[false,false,true,false],"EMA":[false,false,true,false]}},{"id":"kaltensundheim-turnhalle","ort":"Kaltensundheim","objekt":"Turnhalle","zusatz":"","gewerke":{"Sibel":[false,false,true,false],"RWA":[false,false,false,true]}},{"id":"kaltensundheim-wohnhaus","ort":"Kaltensundheim","objekt":"Wohnhaus","zusatz":"","gewerke":{}},{"id":"kaltenwestheim-mehrzweckhalle","ort":"Kaltenwestheim","objekt":"Mehrzweckhalle","zusatz":"","gewerke":{}},{"id":"kleinschmalkalden-service-wohnen","ort":"Kleinschmalkalden","objekt":"Service Wohnen","zusatz":"","gewerke":{}},{"id":"kuehndorf-kita","ort":"Kühndorf","objekt":"Kita","zusatz":"","gewerke":{}},{"id":"lengfurt-bghm","ort":"Lengfurt","objekt":"BGHM","zusatz":"","gewerke":{}},{"id":"meiningen-alte-handwerkskammer","ort":"Meiningen","objekt":"Alte Handwerkskammer","zusatz":"","gewerke":{"Sibel":[false,true,false,false]}},{"id":"meiningen-altes-stadtbad","ort":"Meiningen","objekt":"Altes Stadtbad","zusatz":"","gewerke":{"Sibel":[false,true,false,false],"ELA":[false,false,true,false]}},{"id":"meiningen-altstadt-hotel","ort":"Meiningen","objekt":"Altstadt-Hotel","zusatz":"","gewerke":{"BMA":[false,true,false,true]}},{"id":"meiningen-anwaltskanzlei-heller-rotter-schenk","ort":"Meiningen","objekt":"Anwaltskanzlei","zusatz":"Heller-Rotter-Schenk","gewerke":{"EMA":[true,false,false,false]}},{"id":"meiningen-awg-utendorfer-84-90","ort":"Meiningen","objekt":"AWG","zusatz":"Utendorfer 84-90","gewerke":{"RWA":[false,false,true,false]}},{"id":"meiningen-awg-am-kiliansberg-25-35","ort":"Meiningen","objekt":"AWG","zusatz":"Am Kiliansberg 25-35","gewerke":{"RWA":[false,false,true,false]}},{"id":"meiningen-awg-am-kiliansberg-37-53","ort":"Meiningen","objekt":"AWG","zusatz":"Am Kiliansberg 37-53","gewerke":{"RWA":[false,false,true,false]}},{"id":"meiningen-awg-am-kiliansberg-44-70","ort":"Meiningen","objekt":"AWG","zusatz":"Am Kiliansberg 44-70","gewerke":{"RWA":[false,false,true,false]}},{"id":"meiningen-bbz-am-drachenberg","ort":"Meiningen","objekt":"BBZ","zusatz":"Am Drachenberg","gewerke":{"RWA":[true,false,false,false]}},{"id":"meiningen-bbz-am-drachenberg-h1","ort":"Meiningen","objekt":"BBZ","zusatz":"Am Drachenberg H1","gewerke":{}},{"id":"meiningen-bbz-am-drachenberg-h2","ort":"Meiningen","objekt":"BBZ","zusatz":"Am Drachenberg H2","gewerke":{}},{"id":"meiningen-bbz-am-drachenberg-h3","ort":"Meiningen","objekt":"BBZ","zusatz":"Am Drachenberg H3","gewerke":{"RWA":[false,true,false,false]}},{"id":"meiningen-bbz-gartenstrasse","ort":"Meiningen","objekt":"BBZ","zusatz":"Gartenstraße","gewerke":{"Sibel":[false,false,true,false],"RWA":[false,false,true,false]}},{"id":"meiningen-bielstein-2-a-c","ort":"Meiningen","objekt":"Bielstein 2 a-c","zusatz":"","gewerke":{"Sibel":[false,false,true,false],"RWA":[false,false,true,false]}},{"id":"meiningen-bs-gesundh--soz","ort":"Meiningen","objekt":"BS","zusatz":"Gesundh + Soz","gewerke":{"Sibel":[true,false,false,false],"RWA":[false,false,true,false],"ELA":[false,false,true,false]}},{"id":"meiningen-dampflok-erlebniswelt","ort":"Meiningen","objekt":"Dampflok Erlebniswelt","zusatz":"","gewerke":{"RWA":[true,false,false,false],"Fluchttür":[false,true,false,false],"Sibel":[false,false,false,true],"EMA":[false,false,false,true]}},{"id":"meiningen-dampflokwerk","ort":"Meiningen","objekt":"Dampflokwerk","zusatz":"","gewerke":{"EMA":[false,true,false,true]}},{"id":"meiningen-eduard-fritze-str-5","ort":"Meiningen","objekt":"Eduard-Fritze-Str. 5","zusatz":"","gewerke":{"RWA":[true,false,false,false]}},{"id":"meiningen-einwohnermeldeamt","ort":"Meiningen","objekt":"Einwohnermeldeamt","zusatz":"","gewerke":{}},{"id":"meiningen-ev-gymnasium","ort":"Meiningen","objekt":"Ev. Gymnasium","zusatz":"","gewerke":{"Sibel":[true,false,false,false],"Feststell":[true,false,false,false],"EMA":[true,false,false,false],"RWA":[false,false,true,false]}},{"id":"meiningen-ev-gymnasium","ort":"Meiningen","objekt":"Ev. Gymnasium","zusatz":"","gewerke":{"Feststell":[false,false,false,true]}},{"id":"meiningen-fluramt","ort":"Meiningen","objekt":"Fluramt","zusatz":"","gewerke":{"Sibel":[false,true,false,false]}},{"id":"meiningen-foerderschule-anne-frank","ort":"Meiningen","objekt":"Förderschule","zusatz":"Anne Frank","gewerke":{"Sibel":[true,false,false,false],"ELA":[true,false,false,false],"EMA":[true,false,false,false],"RWA":[false,false,true,false],"Feststell":[false,false,false,true]}},{"id":"meiningen-galerie-ada","ort":"Meiningen","objekt":"Galerie ADA","zusatz":"","gewerke":{}},{"id":"meiningen-gelbe-gefahr","ort":"Meiningen","objekt":"gelbe Gefahr","zusatz":"","gewerke":{"Sibel":[false,false,false,true]}},{"id":"meiningen-gemeinschaftsunterkunft","ort":"Meiningen","objekt":"Gemeinschaftsunterkunft","zusatz":"","gewerke":{"Sibel":[true,false,false,false]}},{"id":"meiningen-grosses-palais","ort":"Meiningen","objekt":"Großes Palais","zusatz":"","gewerke":{"RWA":[false,false,true,false]}},{"id":"meiningen-grundschule-ludwig-chronegk","ort":"Meiningen","objekt":"Grundschule","zusatz":"Ludwig Chronegk","gewerke":{"RWA":[true,false,false,false],"ELA":[true,false,false,false],"Feststell":[true,false,false,false],"EMA":[true,false,false,false],"Sibel":[false,true,false,false]}},{"id":"meiningen-hi-wuerzburg-heinrich-heine-str-1ab","ort":"Meiningen","objekt":"H+I Würzburg","zusatz":"Heinrich-Heine-Str. 1a+b","gewerke":{"Sonstiges":[true,false,false,false]}},{"id":"meiningen-hi-wuerzburg-heimstr-21-sp-04","ort":"Meiningen","objekt":"H+I Würzburg","zusatz":"Heimstr. 21, Sp. 04","gewerke":{"RWA":[false,false,false,true]}},{"id":"meiningen-hi-wuerzburg-heimstr-23-sp-04","ort":"Meiningen","objekt":"H+I Würzburg","zusatz":"Heimstr. 23, Sp. 04","gewerke":{"RWA":[false,false,false,true]}},{"id":"meiningen-hi-wuerzburg-heimstr-25-sp-04","ort":"Meiningen","objekt":"H+I Würzburg","zusatz":"Heimstr. 25, Sp. 04","gewerke":{"RWA":[false,false,false,true]}},{"id":"meiningen-hi-wuerzburg-heimstr-27-sp-06","ort":"Meiningen","objekt":"H+I Würzburg","zusatz":"Heimstr. 27, Sp. 06","gewerke":{"RWA":[false,false,false,true]}},{"id":"meiningen-hi-wuerzburg-heimstr-29-sp-06","ort":"Meiningen","objekt":"H+I Würzburg","zusatz":"Heimstr. 29, Sp .06","gewerke":{"RWA":[false,false,false,true]}},{"id":"meiningen-hi-wuerzburg-heimstr-31-sp-06","ort":"Meiningen","objekt":"H+I Würzburg","zusatz":"Heimstr. 31, Sp. 06","gewerke":{"RWA":[false,false,false,true]}},{"id":"meiningen-hallenbad-rohrer-stirn","ort":"Meiningen","objekt":"Hallenbad \"Rohrer Stirn\"","zusatz":"","gewerke":{"ELA":[true,true,true,true],"RWA":[false,false,true,false],"EMA":[false,false,true,false]}},{"id":"meiningen-haus-der-familie","ort":"Meiningen","objekt":"Haus der Familie","zusatz":"","gewerke":{"Sibel":[false,true,false,false],"RWA":[false,true,false,false]}},{"id":"meiningen-henfling---gym","ort":"Meiningen","objekt":"Henfling - Gym","zusatz":"","gewerke":{"RWA":[false,false,true,false],"EMA":[false,false,false,true]}},{"id":"meiningen-jean-paul-schule","ort":"Meiningen","objekt":"Jean Paul Schule","zusatz":"","gewerke":{"Sibel":[true,false,false,false],"ELA":[true,false,false,false]}},{"id":"meiningen-kammerspiele","ort":"Meiningen","objekt":"Kammerspiele","zusatz":"","gewerke":{"RWA":[false,true,false,false]}},{"id":"meiningen-kfz-zulassungsstelle","ort":"Meiningen","objekt":"KfZ-Zulassungsstelle","zusatz":"","gewerke":{"EMA":[true,false,false,false],"Sibel":[false,false,true,false],"Fluchttür":[false,false,true,false]}},{"id":"meiningen-kita-landsberger-str-fruehfoerderstelle","ort":"Meiningen","objekt":"Kita Landsberger Str.","zusatz":"Frühförderstelle","gewerke":{"Feststell":[true,false,false,false],"RWA":[false,false,true,false]}},{"id":"meiningen-kita-max-und-moritz","ort":"Meiningen","objekt":"Kita","zusatz":"Max und Moritz","gewerke":{"Sibel":[true,false,false,false],"Fluchttür":[true,false,false,false],"Feststell":[true,false,false,false]}},{"id":"meiningen-kita-werrahuepfer-im-park","ort":"Meiningen","objekt":"Kita Werrahüpfer","zusatz":"im Park","gewerke":{"Sibel":[false,false,false,true],"RWA":[false,false,false,true],"Fluchttür":[false,false,false,true],"Feststell":[false,false,false,true],"BMA":[false,false,false,true],"EMA":[false,false,false,true]}},{"id":"meiningen-landratsamt-haus-4","ort":"Meiningen","objekt":"Landratsamt","zusatz":"Haus 4","gewerke":{"EMA":[true,false,false,false],"Sibel":[false,false,false,true]}},{"id":"meiningen-landratsamt","ort":"Meiningen","objekt":"Landratsamt","zusatz":"","gewerke":{"Sonstiges":[false,false,false,true]}},{"id":"meiningen-landratsamt-haus-3","ort":"Meiningen","objekt":"Landratsamt","zusatz":"Haus 3","gewerke":{"Sibel":[false,false,false,true]}},{"id":"meiningen-landwirtschaftsamt","ort":"Meiningen","objekt":"Landwirtschaftsamt","zusatz":"","gewerke":{"RWA":[false,true,false,false]}},{"id":"meiningen-lebenshilfe-barbarastr-2","ort":"Meiningen","objekt":"Lebenshilfe","zusatz":"Barbarastr. 2","gewerke":{"Sibel":[true,false,false,false],"RWA":[true,false,false,false]}},{"id":"meiningen-multihalle","ort":"Meiningen","objekt":"Multihalle","zusatz":"","gewerke":{"RWA":[false,false,false,true]}},{"id":"meiningen-pflegeheim-awo","ort":"Meiningen","objekt":"Pflegeheim","zusatz":"AWO","gewerke":{"RWA":[true,false,false,false],"Sibel":[false,true,false,false]}},{"id":"meiningen-pflegeheim-haus-lebenswert","ort":"Meiningen","objekt":"Pflegeheim","zusatz":"Haus Lebenswert","gewerke":{"Fluchttür":[true,false,false,false],"Feststell":[true,false,false,false],"Sibel":[false,true,false,false],"RWA":[false,false,true,false],"SWR":[false,false,false,true]}},{"id":"meiningen-polizei-haus-1","ort":"Meiningen","objekt":"Polizei","zusatz":"Haus 1","gewerke":{"Sibel":[false,false,false,true],"RWA":[false,false,false,true]}},{"id":"meiningen-polizei-haus-3","ort":"Meiningen","objekt":"Polizei","zusatz":"Haus 3","gewerke":{"RWA":[false,false,false,true]}},{"id":"meiningen-polizei-haus-4","ort":"Meiningen","objekt":"Polizei","zusatz":"Haus 4","gewerke":{}},{"id":"meiningen-polizei-haus-5a","ort":"Meiningen","objekt":"Polizei","zusatz":"Haus 5a","gewerke":{}},{"id":"meiningen-polizei-haus-5b","ort":"Meiningen","objekt":"Polizei","zusatz":"Haus 5b","gewerke":{"Sibel":[false,false,false,true],"RWA":[false,false,false,true]}},{"id":"meiningen-polizei-haus-6-ueber-kynast","ort":"Meiningen","objekt":"Polizei","zusatz":"Haus 6 (über Kynast)","gewerke":{}},{"id":"meiningen-polizei-haus-8","ort":"Meiningen","objekt":"Polizei","zusatz":"Haus 8","gewerke":{}},{"id":"meiningen-polizei-turnhalle","ort":"Meiningen","objekt":"Polizei","zusatz":"Turnhalle","gewerke":{}},{"id":"meiningen-polizei-container-ueber-industriebau","ort":"Meiningen","objekt":"Polizei","zusatz":"Container (über Industriebau)","gewerke":{"Sibel":[false,false,false,true]}},{"id":"meiningen-regelschule-am-pulverrasen","ort":"Meiningen","objekt":"Regelschule","zusatz":"Am Pulverrasen","gewerke":{"Feststell":[true,false,false,false],"Sibel":[false,false,true,false],"RWA":[false,false,false,true],"EMA":[false,false,false,true]}},{"id":"meiningen-regelschule-am-kiliansberg","ort":"Meiningen","objekt":"Regelschule","zusatz":"Am Kiliansberg","gewerke":{"Sibel":[true,false,false,false],"ELA":[true,false,false,false],"Feststell":[false,true,false,false],"EMA":[false,false,true,false],"RWA":[false,false,false,true]}},{"id":"meiningen-seniorenzentrum-drk-henneberger-str","ort":"Meiningen","objekt":"Seniorenzentrum","zusatz":"DRK Henneberger Str.)","gewerke":{"Sibel":[false,false,false,true],"RWA":[false,false,false,true]}},{"id":"meiningen-seniorenzentrum-residenz-georg-ii","ort":"Meiningen","objekt":"Seniorenzentrum","zusatz":"Residenz Georg II","gewerke":{"Sibel":[true,false,false,false],"SWR":[true,false,false,false],"RWA":[false,false,false,true]}},{"id":"meiningen-sparkasse","ort":"Meiningen","objekt":"Sparkasse","zusatz":"","gewerke":{"RWA":[false,false,false,true]}},{"id":"meiningen-stadtarchiv","ort":"Meiningen","objekt":"Stadtarchiv","zusatz":"","gewerke":{}},{"id":"meiningen-stadtwerke-buerogeb","ort":"Meiningen","objekt":"Stadtwerke","zusatz":"Bürogeb.","gewerke":{"EMA":[false,true,false,false],"Sibel":[false,false,true,false],"RWA":[false,false,true,false],"Feststell":[false,false,true,false]}},{"id":"meiningen-sued-thueringen-bahn","ort":"Meiningen","objekt":"Süd-Thüringen-Bahn","zusatz":"","gewerke":{"Sibel":[true,false,false,false]}},{"id":"meiningen-tiefgarage-am-mittleren-rasen","ort":"Meiningen","objekt":"Tiefgarage","zusatz":"Am Mittleren Rasen","gewerke":{"Sibel":[true,false,false,false]}},{"id":"meiningen-turnhalle-am-drachenberg","ort":"Meiningen","objekt":"Turnhalle","zusatz":"Am Drachenberg","gewerke":{"Sibel":[true,false,false,false],"ELA":[false,false,true,false]}},{"id":"meiningen-turnhalle-ludwig-chronegk","ort":"Meiningen","objekt":"Turnhalle","zusatz":"Ludwig Chronegk","gewerke":{"Sibel":[true,false,false,false]}},{"id":"meiningen-turnhalle-am-kiliansberg","ort":"Meiningen","objekt":"Turnhalle","zusatz":"Am Kiliansberg","gewerke":{"Sibel":[true,false,false,false],"RWA":[true,false,false,false]}},{"id":"meiningen-verkehrserziehungsgarten","ort":"Meiningen","objekt":"Verkehrserziehungsgarten","zusatz":"","gewerke":{"Sibel":[true,false,false,false]}},{"id":"meiningen-villa-strupp","ort":"Meiningen","objekt":"Villa Strupp","zusatz":"","gewerke":{"Feststell":[false,true,false,false],"RWA":[false,false,true,false],"Sibel":[false,false,false,true]}},{"id":"meiningen-volkshaus","ort":"Meiningen","objekt":"Volkshaus","zusatz":"","gewerke":{"Sibel":[false,false,true,false],"RWA":[false,false,false,true]}},{"id":"meiningen-wbg-nonnenplan-7","ort":"Meiningen","objekt":"WBG","zusatz":"Nonnenplan 7","gewerke":{"RWA":[false,true,false,false]}},{"id":"meiningen-wbg-toepfermarkt-8","ort":"Meiningen","objekt":"WBG","zusatz":"Töpfermarkt 8","gewerke":{"RWA":[false,true,false,false]}},{"id":"meiningen-wbg-utendorfer-str-64","ort":"Meiningen","objekt":"WBG","zusatz":"Utendorfer Str. 64","gewerke":{"RWA":[false,false,true,false]}},{"id":"meiningen-wbg-am-steingraben-4-14","ort":"Meiningen","objekt":"WBG","zusatz":"Am Steingraben 4-14","gewerke":{"RWA":[false,false,true,false]}},{"id":"meiningen-wbg-am-steingraben-16-26","ort":"Meiningen","objekt":"WBG","zusatz":"Am Steingraben 16-26","gewerke":{"RWA":[false,false,true,false]}},{"id":"meiningen-wbg-am-steingraben-28-38","ort":"Meiningen","objekt":"WBG","zusatz":"Am Steingraben 28-38","gewerke":{"RWA":[false,false,true,false]}},{"id":"meiningen-wbg-am-steingraben-11-19","ort":"Meiningen","objekt":"WBG","zusatz":"Am Steingraben 11-19","gewerke":{"RWA":[false,false,true,false]}},{"id":"meiningen-wbg-am-steingraben-21-29","ort":"Meiningen","objekt":"WBG","zusatz":"Am Steingraben 21-29","gewerke":{"RWA":[false,false,true,false]}},{"id":"meiningen-wbg-am-steingraben-31-39","ort":"Meiningen","objekt":"WBG","zusatz":"Am Steingraben 31-39","gewerke":{"RWA":[false,false,true,false]}},{"id":"meiningen-wbg-am-steingraben-41-49","ort":"Meiningen","objekt":"WBG","zusatz":"Am Steingraben 41-49","gewerke":{"RWA":[false,false,true,false]}},{"id":"meiningen-wbg-utendorfer-str-50-52","ort":"Meiningen","objekt":"WBG","zusatz":"Utendorfer Str. 50-52","gewerke":{"RWA":[false,false,true,false]}},{"id":"meiningen-wbg-utendorfer-str-54-60","ort":"Meiningen","objekt":"WBG","zusatz":"Utendorfer Str. 54-60","gewerke":{"RWA":[false,false,true,false]}},{"id":"meiningen-wbg-wohnen-am-schloss","ort":"Meiningen","objekt":"WBG","zusatz":"Wohnen am Schloss","gewerke":{"RWA":[false,false,false,true]}},{"id":"meiningen-wbg-jerusalemer-str-12-22","ort":"Meiningen","objekt":"WBG","zusatz":"Jerusalemer Str. 12-22","gewerke":{"RWA":[false,false,true,false]}},{"id":"meiningen-wbg-kiliansberg-22-30","ort":"Meiningen","objekt":"WBG","zusatz":"Kiliansberg 22-30","gewerke":{"RWA":[false,false,true,false]}},{"id":"meiningen-wbg-jerusalemer-str-21","ort":"Meiningen","objekt":"WBG","zusatz":"Jerusalemer Str. 21","gewerke":{"RWA":[false,false,true,false]}},{"id":"meiningen-wbg-am-haselbusch-19-25","ort":"Meiningen","objekt":"WBG","zusatz":"Am Haselbusch 19-25","gewerke":{"RWA":[false,false,true,false]}},{"id":"meiningen-wbg-utendorfer-str-92-98","ort":"Meiningen","objekt":"WBG","zusatz":"Utendorfer Str. 92-98","gewerke":{"RWA":[false,false,true,false]}},{"id":"meiningen-wbg-utendorfer-str-108-114","ort":"Meiningen","objekt":"WBG","zusatz":"Utendorfer Str. 108-114","gewerke":{"RWA":[false,false,true,false]}},{"id":"meiningen-wbg-utendorfer-str-72-82","ort":"Meiningen","objekt":"WBG","zusatz":"Utendorfer Str. 72-82","gewerke":{"RWA":[false,false,true,false]}},{"id":"meiningen-wohnhaus-freitagsgasse-9-15","ort":"Meiningen","objekt":"Wohnhaus","zusatz":"Freitagsgasse 9-15","gewerke":{"RWA":[false,false,false,true]}},{"id":"meiningen-wohnhaus-am-drachenberg-55a","ort":"Meiningen","objekt":"Wohnhaus","zusatz":"Am Drachenberg 5+5a","gewerke":{"RWA":[false,false,false,true]}},{"id":"meiningen-wohnheim-bbz","ort":"Meiningen","objekt":"Wohnheim","zusatz":"BBZ","gewerke":{"RWA":[true,false,false,false]}},{"id":"meiningen-wohnpark-steinweg-bechsteinstr","ort":"Meiningen","objekt":"Wohnpark","zusatz":"Steinweg/Bechsteinstr.","gewerke":{"RWA":[false,true,false,false]}},{"id":"mengesger-haemmern-awo-wohngemeinschaft","ort":"Mengesger. Hämmern","objekt":"AWO Wohngemeinschaft","zusatz":"","gewerke":{"Sibel":[false,true,false,false]}},{"id":"niederwerrn-tiefgarage","ort":"Niederwerrn","objekt":"Tiefgarage","zusatz":"","gewerke":{"Sibel":[false,false,false,true]}},{"id":"nuernberg-bg-holzmetall","ort":"Nürnberg","objekt":"BG Holz+Metall","zusatz":"","gewerke":{}},{"id":"oberhof-funktionsgebaeude-fallbach","ort":"Oberhof","objekt":"Funktionsgebäude Fallbach","zusatz":"","gewerke":{"Sibel":[true,false,false,false]}},{"id":"oberhof-grundschule","ort":"Oberhof","objekt":"Grundschule","zusatz":"","gewerke":{"ELA":[false,false,true,false],"Sibel":[false,false,false,true]}},{"id":"obermassfeld-kita","ort":"Obermaßfeld","objekt":"Kita","zusatz":"","gewerke":{"Sibel":[true,false,false,false]}},{"id":"obermassfeld-pflegeheim-kbo","ort":"Obermaßfeld","objekt":"Pflegeheim KBO","zusatz":"","gewerke":{"Sibel":[true,false,false,false]}},{"id":"obermassfeld-regelschule","ort":"Obermaßfeld","objekt":"Regelschule","zusatz":"","gewerke":{"Sibel":[true,false,false,false],"ELA":[false,true,false,false],"EMA":[false,false,false,true]}},{"id":"ohrdruf-pflegeheim","ort":"Ohrdruf","objekt":"Pflegeheim","zusatz":"","gewerke":{"Sibel":[false,true,false,false],"Fluchttür":[false,false,true,false]}},{"id":"oldisleben-pflegeheim","ort":"Oldisleben","objekt":"Pflegeheim","zusatz":"","gewerke":{"Sibel":[true,false,false,false]}},{"id":"queinfeld-deko-messezentrum-halle1","ort":"Queinfeld","objekt":"Deko Messezentrum Halle1","zusatz":"","gewerke":{}},{"id":"queinfeld-deko-messezentrum-halle2","ort":"Queinfeld","objekt":"Deko Messezentrum Halle2","zusatz":"","gewerke":{}},{"id":"rippershausen-agrargesellschaft-herpf-mbh","ort":"Rippershausen","objekt":"Agrargesellschaft Herpf mbh","zusatz":"","gewerke":{"EMA":[true,false,false,false]}},{"id":"roemhild-pflegeheim","ort":"Römhild","objekt":"Pflegeheim","zusatz":"","gewerke":{"Sibel":[false,false,true,false],"RWA":[false,false,false,true]}},{"id":"schmalkalden-haus-am-tor","ort":"Schmalkalden","objekt":"Haus am Tor","zusatz":"","gewerke":{"Sibel":[false,false,false,true]}},{"id":"schmalkalden-kita-mittelschmalkalden","ort":"Schmalkalden","objekt":"Kita","zusatz":"Mittelschmalkalden","gewerke":{}},{"id":"schmalkalden-melanchton-gymnasium","ort":"Schmalkalden","objekt":"Melanchton Gymnasium","zusatz":"","gewerke":{"Sibel":[false,true,false,false],"Feststell":[false,true,false,false],"RWA":[false,false,false,true]}},{"id":"schmalkalden-pflegeheim-am-schloss","ort":"Schmalkalden","objekt":"Pflegeheim","zusatz":"Am Schloss","gewerke":{"ELA":[false,true,false,false],"Sibel":[false,false,true,false],"RWA":[false,false,true,false],"SWR":[false,false,false,true]}},{"id":"schmalkalden-pflegeheim-hoffnung-3","ort":"Schmalkalden","objekt":"Pflegeheim","zusatz":"Hoffnung 3","gewerke":{"Sibel":[false,true,false,false]}},{"id":"schmalkalden-schule-renthofstrasse","ort":"Schmalkalden","objekt":"Schule Renthofstraße","zusatz":"","gewerke":{"Sibel":[true,false,false,false],"ELA":[true,false,false,false],"RWA":[false,false,false,true]}},{"id":"schmalkalden-sparkasse-altmarkt","ort":"Schmalkalden","objekt":"Sparkasse Altmarkt","zusatz":"","gewerke":{}},{"id":"schmalkalden-turnhalle-am-wlaperloh","ort":"Schmalkalden","objekt":"Turnhalle","zusatz":"Am Wlaperloh","gewerke":{}},{"id":"schoenbrunn-pflegeheim-herbstsonne","ort":"Schönbrunn","objekt":"Pflegeheim","zusatz":"Herbstsonne","gewerke":{"Sibel":[true,false,false,false],"Fluchttür":[true,false,false,false]}},{"id":"schwallungen-berufschule-gesundheitsoziales","ort":"Schwallungen","objekt":"Berufschule","zusatz":"Gesundheit+Soziales","gewerke":{"Sibel":[false,false,true,false],"RWA":[false,false,true,false]}},{"id":"schwallungen-turnhalle-gesundheitsoziales","ort":"Schwallungen","objekt":"Turnhalle","zusatz":"Gesundheit+Soziales","gewerke":{"Sibel":[false,false,true,false]}},{"id":"schwebheim-weg-sr-rotter-str-11a-f","ort":"Schwebheim","objekt":"WEG Sr. Rotter-Str. 11a-f","zusatz":"","gewerke":{"Sibel":[false,false,false,true]}},{"id":"schweinfurt-hadergasse-36","ort":"Schweinfurt","objekt":"Hadergasse 36","zusatz":"","gewerke":{"Sibel":[false,false,false,true]}},{"id":"schweinfurt-pflegeheim","ort":"Schweinfurt","objekt":"Pflegeheim","zusatz":"","gewerke":{"RWA":[true,false,false,false],"Fluchttür":[false,true,false,false],"Sibel":[false,false,true,false],"SWR":[false,false,true,false]}},{"id":"schweinfurt-studentenwohnheim","ort":"Schweinfurt","objekt":"Studentenwohnheim","zusatz":"","gewerke":{"Sibel":[false,false,false,true],"RWA":[false,false,false,true]}},{"id":"schweinfurt-tiefgarage-vogelweide-71-83","ort":"Schweinfurt","objekt":"Tiefgarage","zusatz":"Vogelweide 71-83","gewerke":{"Sibel":[false,false,false,true],"RWA":[false,false,false,true]}},{"id":"schweinfurt-weg-apostelgasse-20","ort":"Schweinfurt","objekt":"WEG Apostelgasse 20","zusatz":"","gewerke":{"RWA":[false,false,false,true]}},{"id":"schweinfurt-wohnhaus-dittelbrunner-weg-2a-g","ort":"Schweinfurt","objekt":"Wohnhaus","zusatz":"Dittelbrunner Weg 2a-g","gewerke":{"RWA":[false,false,false,true]}},{"id":"schweinfurt-wohnhaus-gunnargudrun-hiller","ort":"Schweinfurt","objekt":"Wohnhaus","zusatz":"Gunnar+Gudrun Hiller","gewerke":{"RWA":[false,false,false,true]}},{"id":"steinach-pflegeheim","ort":"Steinach","objekt":"Pflegeheim","zusatz":"","gewerke":{"SWR":[true,false,false,false],"RWA":[false,true,false,false],"Feststell":[false,true,false,false],"Sibel":[false,false,false,true]}},{"id":"steinbach-hallenberg-ganztagsschule","ort":"Steinbach-Hallenberg","objekt":"Ganztagsschule","zusatz":"","gewerke":{"EMA":[false,true,false,false],"Sibel":[false,false,true,false]}},{"id":"steinbach-hallenberg-mehrzweckhalle","ort":"Steinbach-Hallenberg","objekt":"Mehrzweckhalle","zusatz":"","gewerke":{}},{"id":"suhl-behoerdenhaus-friesenstr","ort":"Suhl","objekt":"Behördenhaus Friesenstr.","zusatz":"","gewerke":{"Feststell":[false,true,false,false]}},{"id":"suhl-behoerdenzentrum-haus-2","ort":"Suhl","objekt":"Behördenzentrum","zusatz":"Haus 2","gewerke":{"RWA":[false,true,false,false],"Feststell":[false,true,false,false]}},{"id":"suhl-behoerdenzentrum-haus-3","ort":"Suhl","objekt":"Behördenzentrum","zusatz":"Haus 3","gewerke":{}},{"id":"suhl-grundschule-am-himmelreich","ort":"Suhl","objekt":"Grundschule","zusatz":"Am Himmelreich","gewerke":{"Sibel":[true,false,false,false],"Feststell":[true,false,false,false]}},{"id":"suhl-grundschule-ringbergschule","ort":"Suhl","objekt":"Grundschule","zusatz":"Ringbergschule","gewerke":{"Sibel":[true,false,false,false]}},{"id":"suhl-hauptzollamt","ort":"Suhl","objekt":"Hauptzollamt","zusatz":"","gewerke":{"RWA":[false,false,true,false]}},{"id":"suhl-thepra-kita-waldstrolche","ort":"Suhl","objekt":"Thepra Kita","zusatz":"Waldstrolche","gewerke":{}},{"id":"suhl-kita-doellbergzwerge","ort":"Suhl","objekt":"Kita","zusatz":"Döllbergzwerge","gewerke":{"Sibel":[true,false,false,false],"BMA":[true,false,false,false]}},{"id":"suhl-kita-kinderland","ort":"Suhl","objekt":"Kita","zusatz":"Kinderland","gewerke":{"BMA":[false,false,true,false]}},{"id":"suhl-pflegeheim-hufelandstr-11","ort":"Suhl","objekt":"Pflegeheim","zusatz":"Hufelandstr. 11","gewerke":{}},{"id":"suhl-waffenmuseum","ort":"Suhl","objekt":"Waffenmuseum","zusatz":"","gewerke":{"Sibel":[false,true,false,false]}},{"id":"suhl-wohnen-mit-klassenz-am-hohenloh","ort":"Suhl","objekt":"Wohnen mit Klassenz.","zusatz":"Am Hohenloh","gewerke":{"RWA":[true,false,false,false],"Sibel":[false,true,false,false]}},{"id":"themar-turnhalle","ort":"Themar","objekt":"Turnhalle","zusatz":"","gewerke":{"Sibel":[false,false,false,true]}},{"id":"trusetal-pflegeheim-haus-fuer-aeltere-buerger","ort":"Trusetal","objekt":"Pflegeheim","zusatz":"Haus für ältere Bürger","gewerke":{"Sibel":[false,true,false,true],"BMA":[false,false,false,true]}},{"id":"untermassfeld-lebenshilfe-wiesengrund","ort":"Untermaßfeld","objekt":"Lebenshilfe","zusatz":"Wiesengrund","gewerke":{"RWA":[false,false,false,true],"BMA":[false,false,false,true]}},{"id":"vachdorf-grundschule","ort":"Vachdorf","objekt":"Grundschule","zusatz":"","gewerke":{"Sibel":[false,false,true,false],"EMA":[false,false,true,false]}},{"id":"vachdorf-kulturhaus","ort":"Vachdorf","objekt":"Kulturhaus","zusatz":"","gewerke":{"Sibel":[false,false,true,false],"RWA":[false,false,true,false]}},{"id":"vachdorf-turnhalle","ort":"Vachdorf","objekt":"Turnhalle","zusatz":"","gewerke":{"Sibel":[false,false,false,true]}},{"id":"waldheim-seniorenzentrum","ort":"Waldheim","objekt":"Seniorenzentrum","zusatz":"","gewerke":{"SWR":[true,false,false,false],"Sibel":[false,false,false,true]}},{"id":"walldorf-diakonie","ort":"Walldorf","objekt":"Diakonie","zusatz":"","gewerke":{"SWR":[false,false,false,true]}},{"id":"walldorf-grundschule","ort":"Walldorf","objekt":"Grundschule","zusatz":"","gewerke":{"RWA":[true,false,false,false],"EMA":[false,true,false,false],"Sibel":[false,false,false,true],"ELA":[false,false,false,true]}},{"id":"walldorf-kressehof","ort":"Walldorf","objekt":"Kressehof","zusatz":"","gewerke":{"RWA":[true,false,false,false],"BMA":[true,false,false,false],"EMA":[true,false,false,false]}},{"id":"walldorf-turnhalle","ort":"Walldorf","objekt":"Turnhalle","zusatz":"","gewerke":{"Sibel":[false,false,false,true]}},{"id":"waltershausen-pflegeheim","ort":"Waltershausen","objekt":"Pflegeheim","zusatz":"","gewerke":{}},{"id":"wasungen-kita","ort":"Wasungen","objekt":"Kita","zusatz":"","gewerke":{"BMA":[false,false,false,true]}},{"id":"wasungen-regelschule","ort":"Wasungen","objekt":"Regelschule","zusatz":"","gewerke":{"Sibel":[false,false,true,false],"EMA":[false,false,true,false],"ELA":[false,false,false,true]}},{"id":"wasungen-turnhalle","ort":"Wasungen","objekt":"Turnhalle","zusatz":"","gewerke":{"Sibel":[false,false,true,false],"BMA":[false,false,true,false]}},{"id":"wernshausen-kita","ort":"Wernshausen","objekt":"Kita","zusatz":"","gewerke":{"Feststell":[false,false,true,false]}},{"id":"wernshausen-turnhalle","ort":"Wernshausen","objekt":"Turnhalle","zusatz":"","gewerke":{"Sibel":[true,false,false,false],"Feststell":[false,true,false,false],"RWA":[false,false,false,true],"ELA":[false,false,false,true]}},{"id":"wuerzburg-elisabeth--weber-schule","ort":"Würzburg","objekt":"Elisabeth- Weber Schule","zusatz":"","gewerke":{"Sibel":[true,false,false,false],"RWA":[true,false,false,false],"ELA":[true,false,false,false]}},{"id":"zella-mehlis-bbz-suhl-zella-mehlis","ort":"Zella-Mehlis","objekt":"BBZ","zusatz":"Suhl/Zella-Mehlis","gewerke":{"Sibel":[true,false,false,false]}},{"id":"zella-mehlis-bbz-gew-techn-turnhalle","ort":"Zella-Mehlis","objekt":"BBZ","zusatz":"Gew.-Techn. Turnhalle","gewerke":{"BMA":[true,false,false,false]}},{"id":"zella-mehlis-feuerwehr","ort":"Zella-Mehlis","objekt":"Feuerwehr","zusatz":"","gewerke":{}},{"id":"zella-mehlis-grundschule-martin-luther","ort":"Zella-Mehlis","objekt":"Grundschule","zusatz":"Martin Luther","gewerke":{"RWA":[true,false,false,false],"EMA":[true,false,false,false],"Sibel":[false,true,false,false],"ELA":[false,false,true,false]}},{"id":"zella-mehlis-gymnasium-heinrich-ehrhardt","ort":"Zella-Mehlis","objekt":"Gymnasium","zusatz":"Heinrich Ehrhardt","gewerke":{"Sibel":[true,false,false,false],"RWA":[true,false,false,false],"Feststell":[false,true,false,false]}},{"id":"zella-mehlis-mzh-an-der-schillerschule","ort":"Zella-Mehlis","objekt":"MZH","zusatz":"An der Schillerschule","gewerke":{"Sibel":[true,false,false,false]}},{"id":"zella-mehlis-pflegeheim-awo-bergblick","ort":"Zella-Mehlis","objekt":"Pflegeheim","zusatz":"AWO Bergblick","gewerke":{"Sibel":[true,false,false,false]}},{"id":"zella-mehlis-sparkasse","ort":"Zella-Mehlis","objekt":"Sparkasse","zusatz":"","gewerke":{"Sibel":[false,false,false,true],"BMA":[false,false,false,true]}},{"id":"zella-mehlis-stadtmuseum","ort":"Zella-Mehlis","objekt":"Stadtmuseum","zusatz":"","gewerke":{}},{"id":"zella-mehlis-turnhalle-heinrich-ehrhardt","ort":"Zella-Mehlis","objekt":"Turnhalle","zusatz":"Heinrich Ehrhardt","gewerke":{"Sibel":[false,true,false,false],"BMA":[false,false,true,false]}},{"id":"zwenkau-alloheim","ort":"Zwenkau","objekt":"Alloheim","zusatz":"","gewerke":{"Sibel":[true,false,false,true],"RWA":[false,true,false,false],"Fluchttür":[false,false,true,false],"Feststell":[false,false,true,false],"SWR":[false,false,false,true]}}]</script>
+
+<script>
+'use strict';
+
+// ── KONSTANTEN ────────────────────────────────────────────────
+var GH_KEY='wart_gh_config_v1',GH_SHA_KEY='wart_gh_sha_v1',ST_KEY='wart_status_v1',URL_KEY='wart_urls_v1';
+var GEWERKE_ORDER=['BMA','EMA','ELA','RWA','Sibel','Fluchttür','Feststell','SWR','SAA','Sonstiges'];
+var GW_COLOR={
+  'BMA':'#e67e22','EMA':'#2980b9','ELA':'#8e44ad','RWA':'#16a085',
+  'Sibel':'#c9a227','Fluchttür':'#27ae60','Feststell':'#c0392b',
+  'SWR':'#1abc9c','SAA':'#d35400','Sonstiges':'#7f8c8d'
+};
+var CHECKLISTS={
+  'BMA':['Platzhalter 1 – BMA-Wartung','Platzhalter 2 – BMA-Wartung','Platzhalter 3 – BMA-Wartung','Platzhalter 4 – BMA-Wartung'],
+  'EMA':['Platzhalter 1 – EMA-Wartung','Platzhalter 2 – EMA-Wartung','Platzhalter 3 – EMA-Wartung'],
+  'ELA':['Platzhalter 1 – ELA-Wartung','Platzhalter 2 – ELA-Wartung','Platzhalter 3 – ELA-Wartung'],
+  'RWA':['Platzhalter 1 – RWA-Wartung','Platzhalter 2 – RWA-Wartung','Platzhalter 3 – RWA-Wartung'],
+  'Sibel':['Platzhalter 1 – Sicherheitsbeleuchtung','Platzhalter 2 – Sicherheitsbeleuchtung','Platzhalter 3 – Sicherheitsbeleuchtung'],
+  'Fluchttür':['Platzhalter 1 – Fluchttür','Platzhalter 2 – Fluchttür'],
+  'Feststell':['Platzhalter 1 – Feststellanlage','Platzhalter 2 – Feststellanlage'],
+  'SWR':['Platzhalter 1 – SWR','Platzhalter 2 – SWR'],
+  'SAA':['Platzhalter 1 – SAA-Wartung','Platzhalter 2 – SAA-Wartung','Platzhalter 3 – SAA-Wartung'],
+  'Sonstiges':['Platzhalter 1 – Sonstiges']
+};
+
+// ── DATEN ─────────────────────────────────────────────────────
+var KUNDEN=JSON.parse(document.getElementById('wartung-kunden').textContent);
+
+// ── STATE ─────────────────────────────────────────────────────
+var now=new Date();
+var state={
+  year:now.getFullYear(),
+  quarter:Math.floor(now.getMonth()/3),
+  tab:'plan',
+  filterOpen:false,
+  status:{},
+  modal:null
+};
+try{state.status=JSON.parse(localStorage.getItem(ST_KEY)||'{}');}catch(e){}
+
+// ── GITHUB CONFIG ─────────────────────────────────────────────
+var ghConfig=null,ghSha={},appUrls={pruef:'../melder-pruefliste/',regie:'../regiebericht/'};
+try{ghConfig=JSON.parse(localStorage.getItem(GH_KEY));}catch(e){}
+try{ghSha=JSON.parse(localStorage.getItem(GH_SHA_KEY)||'{}');}catch(e){}
+try{var u=JSON.parse(localStorage.getItem(URL_KEY)||'{}');if(u.pruef)appUrls.pruef=u.pruef;if(u.regie)appUrls.regie=u.regie;}catch(e){}
+
+function ghIsConfigured(){return !!(ghConfig&&ghConfig.owner&&ghConfig.repo&&ghConfig.token);}
+function persistGhSha(){localStorage.setItem(GH_SHA_KEY,JSON.stringify(ghSha));}
+
+function ghHeaders(){return{'Authorization':'token '+ghConfig.token,'Content-Type':'application/json',
+  'X-GitHub-Api-Version':'2022-11-28','Accept':'application/vnd.github+json'};}
+
+function ghGetFile(path){
+  var url='https://api.github.com/repos/'+ghConfig.owner+'/'+ghConfig.repo+'/contents/'+path
+    +'?ref='+encodeURIComponent(ghConfig.branch||'main')+'&t='+Date.now();
+  return fetch(url,{headers:ghHeaders()}).then(function(r){
+    if(r.status===404)return null;
+    return r.json().then(function(d){
+      var text=decodeURIComponent(escape(atob(d.content.replace(/\n/g,''))));
+      return{sha:d.sha,payload:JSON.parse(text)};
+    });
+  });
+}
+
+function ghPutFile(path,payload,message,sha){
+  var body=JSON.stringify({message:message,
+    content:btoa(unescape(encodeURIComponent(JSON.stringify(payload)))),
+    branch:ghConfig.branch||'main'});
+  if(sha)body=JSON.stringify({message:message,
+    content:btoa(unescape(encodeURIComponent(JSON.stringify(payload)))),
+    branch:ghConfig.branch||'main',sha:sha});
+  return fetch('https://api.github.com/repos/'+ghConfig.owner+'/'+ghConfig.repo+'/contents/'+path,
+    {method:'PUT',headers:ghHeaders(),body:body}).then(function(r){
+      if(!r.ok)return r.json().then(function(d){var e=new Error(d.message);e.status=r.status;throw e;});
+      return r.json().then(function(d){return d.content.sha;});
+    });
+}
+
+function setSyncStatus(cls,text){
+  var el=document.getElementById('syncStatus');
+  el.className=cls;el.textContent=text;
+}
+
+var pushTimers={};
+function schedulePush(slug){
+  clearTimeout(pushTimers[slug]);
+  pushTimers[slug]=setTimeout(function(){pushStatus(slug);},1200);
+}
+
+function mergeStatus(local,remote){
+  var out=JSON.parse(JSON.stringify(local||{}));
+  if(!remote)return out;
+  Object.keys(remote).forEach(function(year){
+    if(!out[year])out[year]={};
+    Object.keys(remote[year]).forEach(function(qi){
+      if(!out[year][qi])out[year][qi]={};
+      Object.keys(remote[year][qi]).forEach(function(gw){
+        var r=remote[year][qi][gw],l=out[year][qi][gw]||{};
+        var items=(r.items||[]).map(function(v,i){return v||(l.items&&l.items[i]);});
+        out[year][qi][gw]={done:r.done||l.done||false,items:items,kollege:r.kollege||l.kollege||''};
+      });
+    });
+  });
+  return out;
+}
+
+function pushStatus(slug){
+  if(!ghIsConfigured())return Promise.resolve();
+  var path='wartung/'+slug+'.json';
+  var payload={status:state.status[slug]||{},updated:new Date().toISOString()};
+  setSyncStatus('busy','Speichere …');
+  function attempt(t){
+    return ghPutFile(path,payload,'Wartung – '+slug,ghSha[slug]).then(function(sha){
+      ghSha[slug]=sha;persistGhSha();setSyncStatus('ok','Synchron');
+    }).catch(function(err){
+      if(err.status===409&&t>0){
+        return ghGetFile(path).then(function(res){
+          ghSha[slug]=res?res.sha:null;
+          if(res)payload.status=mergeStatus(payload.status,res.payload.status||{});
+          return attempt(t-1);
+        });
+      }
+      setSyncStatus('err','Sync fehlgeschlagen');
+    });
+  }
+  return attempt(3);
+}
+
+function pullAndMerge(slug){
+  if(!ghIsConfigured()){setSyncStatus('off','Nicht verbunden – nur lokal');return Promise.resolve();}
+  var path='wartung/'+slug+'.json';
+  setSyncStatus('busy','Synchronisiere …');
+  return ghGetFile(path).then(function(res){
+    if(res){
+      ghSha[slug]=res.sha;
+      state.status[slug]=mergeStatus(state.status[slug],res.payload.status||{});
+      localStorage.setItem(ST_KEY,JSON.stringify(state.status));
+    }else{ghSha[slug]=null;}
+    persistGhSha();setSyncStatus('ok','Synchron');renderAll();
+  }).catch(function(err){console.error(err);setSyncStatus('err','Offline / Fehler');});
+}
+
+// ── HELPERS ───────────────────────────────────────────────────
+function escHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function toast(msg,cls){
+  var el=document.getElementById('toast');
+  el.textContent=msg;el.className='toast '+(cls||'');
+  clearTimeout(toast._t);
+  toast._t=setTimeout(function(){el.className='toast hidden';},2500);
+}
+
+function getStatusGW(slug,year,qi,gw){
+  return((state.status[slug]||{})[year]||{})[qi]||{};
+}
+function getGWStatus(slug,year,qi,gw){
+  return((getStatusGW(slug,year,qi)||{})[gw])||{done:false,items:[],kollege:''};
+}
+function setGWStatus(slug,year,qi,gw,data){
+  if(!state.status[slug])state.status[slug]={};
+  if(!state.status[slug][year])state.status[slug][year]={};
+  if(!state.status[slug][year][qi])state.status[slug][year][qi]={};
+  state.status[slug][year][qi][gw]=data;
+  localStorage.setItem(ST_KEY,JSON.stringify(state.status));
+}
+
+// ── RENDER QUARTALSPLAN ───────────────────────────────────────
+function renderPlan(){
+  var year=state.year,qi=state.quarter;
+  // Filter: only customers with something due this quarter
+  var list=KUNDEN.filter(function(k){
+    return Object.keys(k.gewerke).some(function(gw){return k.gewerke[gw][qi];});
+  });
+  if(state.filterOpen){
+    list=list.filter(function(k){
+      return Object.keys(k.gewerke).some(function(gw){
+        return k.gewerke[gw][qi]&&!getGWStatus(k.id,year,qi,gw).done;
+      });
+    });
+  }
+
+  if(!list.length){
+    document.getElementById('kundenListe').innerHTML=
+      '<div class="empty-state"><div class="big">✓</div><div>Alle Wartungen erledigt.</div></div>';
+    return;
+  }
+
+  // Group by Ort
+  var byOrt={};
+  list.forEach(function(k){
+    if(!byOrt[k.ort])byOrt[k.ort]=[];
+    byOrt[k.ort].push(k);
+  });
+
+  var html='';
+  Object.keys(byOrt).sort().forEach(function(ort){
+    html+='<div class="ort-group"><div class="ort-label">'+escHtml(ort)+'</div>';
+    byOrt[ort].forEach(function(k){
+      var dueGW=Object.keys(k.gewerke).filter(function(gw){return k.gewerke[gw][qi];});
+      var allDone=dueGW.every(function(gw){return getGWStatus(k.id,year,qi,gw).done;});
+      var nameDisplay=escHtml(k.objekt)+(k.zusatz?'<span class="kunde-zusatz"> – '+escHtml(k.zusatz)+'</span>':'');
+      var pruefLink=appUrls.pruef+'?ort='+encodeURIComponent(k.ort)+'&kunde='+encodeURIComponent(k.objekt);
+      html+='<div class="kunde-card'+(allDone?' all-done':'')+'" data-id="'+escHtml(k.id)+'">';
+      html+='<div class="kunde-top"><span class="kunde-name">'+nameDisplay+'</span>';
+      html+='<a class="btn-pruef" href="'+escHtml(pruefLink)+'" target="_blank">Prüfliste →</a></div>';
+      html+='<div class="gewerk-badges">';
+      // Sort by GEWERKE_ORDER
+      var sorted=GEWERKE_ORDER.filter(function(gw){return dueGW.indexOf(gw)>=0;});
+      sorted.forEach(function(gw){
+        var st=getGWStatus(k.id,year,qi,gw);
+        var col=GW_COLOR[gw]||'#555';
+        var cls='gw-badge '+(st.done?'done':'offen');
+        var style=st.done?'background:'+col+';border-color:'+col+';'
+          :'border-color:'+col+';color:'+col+';';
+        html+='<button class="'+cls+'" style="'+style+'"'
+          +' data-kid="'+escHtml(k.id)+'" data-gw="'+escHtml(gw)+'">'+escHtml(gw)+'</button>';
+      });
+      html+='</div></div>';
+    });
+    html+='</div>';
+  });
+  document.getElementById('kundenListe').innerHTML=html;
+
+  // Badge click → open checklist
+  document.getElementById('kundenListe').querySelectorAll('.gw-badge').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      openChecklist(btn.dataset.kid,btn.dataset.gw);
+    });
+  });
+}
+
+// ── RENDER STAMMDATEN ─────────────────────────────────────────
+function renderStamm(){
+  var q=document.getElementById('stammSearch').value.trim().toLowerCase();
+  var list=KUNDEN.filter(function(k){
+    return !q||(k.ort+' '+k.objekt+' '+k.zusatz).toLowerCase().indexOf(q)>=0;
+  });
+  var byOrt={};
+  list.forEach(function(k){if(!byOrt[k.ort])byOrt[k.ort]=[];byOrt[k.ort].push(k);});
+  var html='';
+  Object.keys(byOrt).sort().forEach(function(ort){
+    html+='<div class="ort-group"><div class="ort-label">'+escHtml(ort)+'</div>';
+    byOrt[ort].forEach(function(k){
+      html+='<div class="stamm-stamm-row">';
+      html+='<div class="stamm-row-name">'+escHtml(k.objekt)+(k.zusatz?' <span style="color:var(--muted);font-size:.82rem;">'+escHtml(k.zusatz)+'</span>':'')+'</div>';
+      html+='<div class="stamm-row-sub">';
+      var gws=Object.keys(k.gewerke);
+      gws.forEach(function(gw){
+        var qs=k.gewerke[gw].map(function(v,i){return v?'Q'+(i+1):null;}).filter(Boolean).join(' ');
+        html+='<span class="gw-mini">'+escHtml(gw)+' ('+escHtml(qs)+')</span>';
+      });
+      if(!gws.length)html+='<span style="color:var(--muted);font-size:.78rem;">Keine Jahreswartung</span>';
+      html+='</div></div>';
+    });
+    html+='</div>';
+  });
+  if(!html)html='<div class="empty-state"><div>Keine Treffer.</div></div>';
+  document.getElementById('stammListe').innerHTML=html;
+}
+
+function renderAll(){
+  if(state.tab==='plan')renderPlan();
+  else renderStamm();
+}
+
+// ── CHECKLIST MODAL ───────────────────────────────────────────
+function openChecklist(slug,gw){
+  var kunde=KUNDEN.find(function(k){return k.id===slug;});
+  if(!kunde)return;
+  state.modal={slug:slug,gw:gw,year:state.year,qi:state.quarter};
+  var st=getGWStatus(slug,state.year,state.quarter,gw);
+  var items=CHECKLISTS[gw]||['Keine Checkliste konfiguriert'];
+
+  var title=gw+'-Wartung · '+kunde.ort+' – '+kunde.objekt;
+  if(kunde.zusatz)title+=' ('+kunde.zusatz+')';
+  document.getElementById('modalTitle').textContent=title;
+
+  // Items
+  var html='';
+  items.forEach(function(item,i){
+    var checked=st.items&&st.items[i];
+    html+='<div class="check-item'+(checked?' checked':'')+'" data-idx="'+i+'">'
+      +'<input type="checkbox" id="ci'+i+'"'+(checked?' checked':'')+' '+(st.done?' disabled':'')+' data-idx="'+i+'">'
+      +'<label for="ci'+i+'">'+escHtml(item)+'</label></div>';
+  });
+  document.getElementById('checkItems').innerHTML=html;
+
+  var doneBanner=document.getElementById('doneBanner');
+  doneBanner.hidden=!st.done;
+  document.getElementById('markDoneBtn').hidden=st.done;
+  document.getElementById('markUndoneBtn').hidden=!st.done;
+
+  document.getElementById('checkModal').hidden=false;
+  document.body.style.overflow='hidden';
+
+  // Checkbox events
+  document.getElementById('checkItems').querySelectorAll('input[type=checkbox]').forEach(function(cb){
+    cb.addEventListener('change',function(){
+      var idx=parseInt(this.dataset.idx,10);
+      var s=getGWStatus(state.modal.slug,state.modal.year,state.modal.qi,state.modal.gw);
+      var newItems=(CHECKLISTS[state.modal.gw]||[]).map(function(_,i){return i===idx?cb.checked:(s.items&&s.items[i])||false;});
+      setGWStatus(state.modal.slug,state.modal.year,state.modal.qi,state.modal.gw,
+        {done:s.done,items:newItems,kollege:s.kollege||''});
+      localStorage.setItem(ST_KEY,JSON.stringify(state.status));
+      schedulePush(state.modal.slug);
+      var row=cb.closest('.check-item');
+      if(cb.checked)row.classList.add('checked');else row.classList.remove('checked');
+    });
+  });
+
+  // Pull latest from GitHub
+  pullAndMerge(slug).then(function(){
+    // Re-render modal items with fresh data
+    var s2=getGWStatus(slug,state.year,state.quarter,gw);
+    document.getElementById('checkItems').querySelectorAll('.check-item').forEach(function(row){
+      var idx=parseInt(row.dataset.idx,10);
+      var cb=row.querySelector('input');
+      var v=s2.items&&s2.items[idx];
+      if(v){row.classList.add('checked');if(cb)cb.checked=true;}
+    });
+    if(s2.done){
+      doneBanner.hidden=false;
+      document.getElementById('markDoneBtn').hidden=true;
+      document.getElementById('markUndoneBtn').hidden=false;
+    }
+  });
+}
+
+function closeModal(){
+  document.getElementById('checkModal').hidden=true;
+  document.body.style.overflow='';
+  state.modal=null;
+  renderAll();
+}
+
+document.getElementById('modalClose').addEventListener('click',closeModal);
+document.getElementById('checkModal').addEventListener('click',function(e){
+  if(e.target===this)closeModal();
+});
+
+document.getElementById('markDoneBtn').addEventListener('click',function(){
+  if(!state.modal)return;
+  var m=state.modal;
+  var items=(CHECKLISTS[m.gw]||[]).map(function(){return true;});
+  setGWStatus(m.slug,m.year,m.qi,m.gw,{done:true,items:items,kollege:''});
+  localStorage.setItem(ST_KEY,JSON.stringify(state.status));
+  schedulePush(m.slug);
+  document.getElementById('doneBanner').hidden=false;
+  document.getElementById('markDoneBtn').hidden=true;
+  document.getElementById('markUndoneBtn').hidden=false;
+  document.getElementById('checkItems').querySelectorAll('input[type=checkbox]').forEach(function(cb){
+    cb.checked=true;cb.disabled=true;cb.closest('.check-item').classList.add('checked');
+  });
+  toast('✓ '+m.gw+'-Wartung als erledigt markiert.','ok');
+});
+
+document.getElementById('markUndoneBtn').addEventListener('click',function(){
+  if(!state.modal)return;
+  var m=state.modal;
+  setGWStatus(m.slug,m.year,m.qi,m.gw,{done:false,items:[],kollege:''});
+  localStorage.setItem(ST_KEY,JSON.stringify(state.status));
+  schedulePush(m.slug);
+  document.getElementById('doneBanner').hidden=true;
+  document.getElementById('markDoneBtn').hidden=false;
+  document.getElementById('markUndoneBtn').hidden=true;
+  document.getElementById('checkItems').querySelectorAll('input[type=checkbox]').forEach(function(cb){
+    cb.checked=false;cb.disabled=false;cb.closest('.check-item').classList.remove('checked');
+  });
+  toast('Wartung zurückgesetzt.');
+});
+
+// ── TABS ──────────────────────────────────────────────────────
+document.querySelectorAll('.tab-btn').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+    btn.classList.add('active');
+    state.tab=btn.dataset.tab;
+    document.getElementById('tabPlan').hidden=state.tab!=='plan';
+    document.getElementById('tabStamm').hidden=state.tab!=='stamm';
+    renderAll();
+  });
+});
+
+// ── YEAR / QUARTER ────────────────────────────────────────────
+(function(){
+  var sel=document.getElementById('yearSel');
+  var curY=new Date().getFullYear();
+  for(var y=curY-1;y<=curY+2;y++){
+    var opt=document.createElement('option');
+    opt.value=y;opt.textContent=y;
+    if(y===state.year)opt.selected=true;
+    sel.appendChild(opt);
+  }
+  sel.addEventListener('change',function(){state.year=parseInt(this.value,10);renderAll();});
+})();
+
+document.querySelectorAll('.q-btn').forEach(function(btn){
+  if(parseInt(btn.dataset.q,10)===state.quarter)btn.classList.add('active');
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.q-btn').forEach(function(b){b.classList.remove('active');});
+    btn.classList.add('active');
+    state.quarter=parseInt(btn.dataset.q,10);
+    renderAll();
+  });
+});
+
+document.getElementById('filterOpen').addEventListener('change',function(){
+  state.filterOpen=this.checked;renderAll();
+});
+
+// ── STAMM SEARCH ──────────────────────────────────────────────
+document.getElementById('stammSearch').addEventListener('input',function(){renderStamm();});
+
+// ── SETTINGS ─────────────────────────────────────────────────
+document.getElementById('settingsBtn').addEventListener('click',function(){
+  if(ghConfig){
+    document.getElementById('ghOwner').value=ghConfig.owner||'';
+    document.getElementById('ghRepo').value=ghConfig.repo||'';
+    document.getElementById('ghBranch').value=ghConfig.branch||'main';
+    document.getElementById('ghToken').value=ghConfig.token||'';
+  }
+  document.getElementById('pruefUrl').value=appUrls.pruef;
+  document.getElementById('regieUrl').value=appUrls.regie;
+  document.getElementById('settingsModal').hidden=false;
+});
+document.getElementById('settingsClose').addEventListener('click',function(){
+  document.getElementById('settingsModal').hidden=true;
+});
+document.getElementById('settingsModal').addEventListener('click',function(e){
+  if(e.target===this)this.hidden=true;
+});
+document.getElementById('settingsSave').addEventListener('click',function(){
+  var o=document.getElementById('ghOwner').value.trim(),
+      r=document.getElementById('ghRepo').value.trim(),
+      b=document.getElementById('ghBranch').value.trim()||'main',
+      t=document.getElementById('ghToken').value.trim();
+  if(o&&r&&t){ghConfig={owner:o,repo:r,branch:b,token:t};localStorage.setItem(GH_KEY,JSON.stringify(ghConfig));}
+  appUrls.pruef=document.getElementById('pruefUrl').value.trim()||'../melder-pruefliste/';
+  appUrls.regie=document.getElementById('regieUrl').value.trim()||'../regiebericht/';
+  localStorage.setItem(URL_KEY,JSON.stringify(appUrls));
+  document.getElementById('settingsModal').hidden=true;
+  toast('Einstellungen gespeichert.','ok');
+  setSyncStatus(ghIsConfigured()?'ok':'off',ghIsConfigured()?'Synchron':'Nicht verbunden');
+  renderAll();
+});
+document.getElementById('settingsTestBtn').addEventListener('click',function(){
+  var o=document.getElementById('ghOwner').value.trim(),r=document.getElementById('ghRepo').value.trim(),
+      b=document.getElementById('ghBranch').value.trim()||'main',t=document.getElementById('ghToken').value.trim();
+  var res=document.getElementById('settingsTest');
+  if(!o||!r||!t){res.textContent='Bitte alle Felder ausfüllen.';res.className='test-result err';return;}
+  res.textContent='Verbindung wird geprüft …';res.className='test-result';
+  var tmp={owner:o,repo:r,branch:b,token:t};
+  var oldCfg=ghConfig;ghConfig=tmp;
+  ghGetFile('wartung/.keep').then(function(){
+    res.textContent='✓ Verbindung erfolgreich.';res.className='test-result ok';
+  }).catch(function(err){
+    res.textContent='✗ Fehler: '+err.message;res.className='test-result err';
+  }).finally(function(){ghConfig=oldCfg;});
+});
+
+// ── SERVICE WORKER ────────────────────────────────────────────
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').then(function(){
+    navigator.serviceWorker.addEventListener('message',function(e){
+      if(e.data&&e.data.type==='UPDATE_AVAILABLE'){
+        if(confirm('Eine neue Version der App ist verfügbar. Jetzt neu laden?'))location.reload();
+      }
+    });
+  });
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+setSyncStatus(ghIsConfigured()?'ok':'off',ghIsConfigured()?'Synchron':'Nicht verbunden');
+renderAll();
+</script>
+</body>
+</html>
