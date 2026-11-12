@@ -1,12 +1,31 @@
 {
   "name": "Wartungsübersicht – Elektro Krieg",
-  "short_name": "Wartung",
-  "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
-  ],
-  "start_url": "./index.html",
+  "short_name": "Wartung EK",
+  "description": "Wartungsplanung und Checklisten für Elektro Krieg Meiningen",
+  "start_url": "./Wartung.html",
   "display": "standalone",
   "background_color": "#1c2430",
-  "theme_color": "#1c2430"
+  "theme_color": "#1c2430",
+  "lang": "de",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
 }
