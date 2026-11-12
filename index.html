@@ -86,6 +86,20 @@ a{color:inherit;text-decoration:none;}
 .gw-badge.done{color:#fff;}
 .gw-badge.done::before{content:'✓ ';}
 .gw-badge sup{font-size:.65em;font-weight:700;margin-left:1px;}
+.check-item-pruef{border-top:1px dashed var(--border);margin-top:4px;padding-top:14px!important;}
+.btn-pruef-modal{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);text-decoration:none;font-size:.88rem;transition:border-color .15s,color .15s;}
+.btn-pruef-modal:hover{border-color:var(--accent);color:var(--accent);}
+/* Kunden-Detail */
+.kunde-card{cursor:pointer;}
+.kunde-card:hover{border-color:var(--accent);}
+.detail-contact{display:flex;flex-direction:column;gap:6px;margin-bottom:18px;}
+.detail-row{display:flex;gap:12px;align-items:flex-start;font-size:.9rem;}
+.detail-label{color:var(--muted);font-size:.8rem;min-width:110px;padding-top:1px;}
+.detail-value a{color:var(--accent);text-decoration:none;}
+.detail-value a:hover{text-decoration:underline;}
+.detail-no-contact{color:var(--muted);font-size:.88rem;font-style:italic;margin-bottom:16px;}
+.detail-section-title{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 8px;border-top:1px solid var(--border);padding-top:12px;}
+.detail-badges{display:flex;flex-wrap:wrap;gap:8px;}
 
 /* EMPTY */
 .empty-state{text-align:center;padding:40px 20px;color:var(--muted);}
@@ -237,6 +251,25 @@ footer.app{text-align:center;padding:16px;font-size:.75rem;color:var(--muted);}
   </div>
 </div>
 
+<!-- Kunden-Detail Modal -->
+<div class="modal-bg" id="kundeDetailModal" hidden>
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="detailTitle" style="font-size:1rem;line-height:1.3;">Kunde</h2>
+      <button class="modal-close" id="detailClose">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-contact" id="detailContact"></div>
+      <div class="detail-section-title">Fällige Wartungen Q<span id="detailQLabel"></span></div>
+      <div class="detail-badges" id="detailBadges"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="detailEditBtn">✏ Stammdaten bearbeiten</button>
+      <button class="btn-secondary" id="detailCloseBtn">Schließen</button>
+    </div>
+  </div>
+</div>
+
 <!-- Kunde Edit Modal -->
 <div class="modal-bg" id="kundeModal" hidden>
   <div class="modal">
@@ -257,6 +290,22 @@ footer.app{text-align:center;padding:16px;font-size:.75rem;color:var(--muted);}
         <div class="form-group">
           <label>Zusatz</label>
           <input id="keZusatz" placeholder="z. B. Am Drachenberg (optional)" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Anschrift</label>
+          <input id="keAnschrift" placeholder="Straße, PLZ Ort (optional)" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Ansprechpartner</label>
+          <input id="keAnsp" placeholder="Name (optional)" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Telefon</label>
+          <input id="keTel" type="tel" placeholder="+49 … (optional)" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>E-Mail</label>
+          <input id="keEmail" type="email" placeholder="name@beispiel.de (optional)" autocomplete="off">
         </div>
         <div class="form-group">
           <label>Jahreswartungen (Gewerk → Quartal)</label>
@@ -503,30 +552,83 @@ function setGWStatus(slug,year,qi,gw,data){
 }
 
 // ── RENDER QUARTALSPLAN ───────────────────────────────────────
+// Fällige Gewerke eines Kunden (aktuelles Quartal + Rollover)
+function getDueGW(k,year,qi){
+  var due={};
+  Object.keys(k.gewerke).forEach(function(gw){if(k.gewerke[gw][qi])due[gw]={rollover:false,srcQ:qi};});
+  for(var qi1=0;qi1<qi;qi1++){
+    Object.keys(k.gewerke).forEach(function(gw){
+      if(k.gewerke[gw][qi1]&&!k.gewerke[gw].every(Boolean)){
+        if(!getGWStatus(k.id,year,qi1,gw).done){
+          if(!due[gw])due[gw]={rollover:true,srcQ:qi1};
+        }
+      }
+    });
+  }
+  return due;
+}
+
+// ── KUNDEN-DETAIL MODAL ───────────────────────────────────────
+function openKundeDetail(slug){
+  var k=KUNDEN.find(function(x){return x.id===slug;});
+  if(!k)return;
+  var title=escHtml(k.objekt)+(k.zusatz?' – '+escHtml(k.zusatz):'')+', '+escHtml(k.ort);
+  document.getElementById('detailTitle').innerHTML=title;
+  // Kontaktdaten
+  var contact='';
+  if(k.anschrift)contact+='<div class="detail-row"><span class="detail-label">Anschrift</span><span class="detail-value">'+escHtml(k.anschrift)+'</span></div>';
+  if(k.ansprechpartner)contact+='<div class="detail-row"><span class="detail-label">Ansprechpartner</span><span class="detail-value">'+escHtml(k.ansprechpartner)+'</span></div>';
+  if(k.telefon)contact+='<div class="detail-row"><span class="detail-label">Telefon</span><span class="detail-value"><a href="tel:'+escHtml(k.telefon)+'">'+escHtml(k.telefon)+'</a></span></div>';
+  if(k.email)contact+='<div class="detail-row"><span class="detail-label">E-Mail</span><span class="detail-value"><a href="mailto:'+escHtml(k.email)+'">'+escHtml(k.email)+'</a></span></div>';
+  document.getElementById('detailContact').innerHTML=contact||'<div class="detail-no-contact">Keine Kontaktdaten hinterlegt.</div>';
+  // Fällige Gewerke
+  var year=state.year,qi=state.quarter;
+  document.getElementById('detailQLabel').textContent=qi+1;
+  var due=getDueGW(k,year,qi);
+  var sorted=GEWERKE_ORDER.filter(function(gw){return due[gw]!==undefined;});
+  var badgeHtml='';
+  if(sorted.length){
+    sorted.forEach(function(gw){
+      var info=due[gw];
+      var st=getGWStatus(k.id,year,info.srcQ,gw);
+      var col=GW_COLOR[gw]||'#555';
+      var cls='gw-badge '+(st.done?'done':info.rollover?'offen rollover':'offen');
+      var style=st.done?'background:'+col+';border-color:'+col+';':'border-color:'+col+';color:'+col+';';
+      var label=escHtml(gw)+(info.rollover?'<sup title="Überfällig aus Q'+(info.srcQ+1)+'">!</sup>':'');
+      badgeHtml+='<button class="'+cls+'" style="'+style+'" data-kid="'+escHtml(k.id)+'" data-gw="'+escHtml(gw)+'" data-srcq="'+info.srcQ+'">'+label+'</button>';
+    });
+  }else{
+    badgeHtml='<span style="color:var(--muted);font-size:.88rem;">Keine Wartungen in Q'+(qi+1)+' fällig.</span>';
+  }
+  document.getElementById('detailBadges').innerHTML=badgeHtml;
+  // Badge-Klick in Detail
+  document.getElementById('detailBadges').querySelectorAll('.gw-badge').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      document.getElementById('kundeDetailModal').hidden=true;
+      document.body.style.overflow='';
+      openChecklist(btn.dataset.kid,btn.dataset.gw,parseInt(btn.dataset.srcq));
+    });
+  });
+  // Edit-Button
+  document.getElementById('detailEditBtn').onclick=function(){
+    document.getElementById('kundeDetailModal').hidden=true;
+    document.body.style.overflow='';
+    openKundeModal(slug);
+  };
+  document.getElementById('kundeDetailModal').hidden=false;
+  document.body.style.overflow='hidden';
+}
+document.getElementById('detailClose').addEventListener('click',function(){document.getElementById('kundeDetailModal').hidden=true;document.body.style.overflow='';});
+document.getElementById('detailCloseBtn').addEventListener('click',function(){document.getElementById('kundeDetailModal').hidden=true;document.body.style.overflow='';});
+document.getElementById('kundeDetailModal').addEventListener('click',function(e){if(e.target===this){this.hidden=true;document.body.style.overflow='';}});
+
 function renderPlan(){
   var year=state.year,qi=state.quarter;
-  // Collect due Gewerke per Kunde: current quarter + rollover from previous quarters
-  function getDueGW(k){
-    var due={};
-    // Current quarter
-    Object.keys(k.gewerke).forEach(function(gw){if(k.gewerke[gw][qi])due[gw]={rollover:false,srcQ:qi};});
-    // Rollover: Jahreswartungen (not every-quarter) due in qi1<qi that are not done
-    for(var qi1=0;qi1<qi;qi1++){
-      Object.keys(k.gewerke).forEach(function(gw){
-        if(k.gewerke[gw][qi1]&&!k.gewerke[gw].every(Boolean)){
-          if(!getGWStatus(k.id,year,qi1,gw).done){
-            if(!due[gw])due[gw]={rollover:true,srcQ:qi1};
-          }
-        }
-      });
-    }
-    return due;
-  }
   // Filter: customers with something due (this quarter OR rollover)
-  var list=KUNDEN.filter(function(k){return Object.keys(getDueGW(k)).length>0;});
+  var list=KUNDEN.filter(function(k){return Object.keys(getDueGW(k,year,qi)).length>0;});
   if(state.filterOpen){
     list=list.filter(function(k){
-      var due=getDueGW(k);
+      var due=getDueGW(k,year,qi);
       return Object.keys(due).some(function(gw){
         return !getGWStatus(k.id,year,due[gw].srcQ,gw).done;
       });
@@ -550,15 +652,11 @@ function renderPlan(){
   Object.keys(byOrt).sort().forEach(function(ort){
     html+='<div class="ort-group"><div class="ort-label">'+escHtml(ort)+'</div>';
     byOrt[ort].forEach(function(k){
-      var due=getDueGW(k);
+      var due=getDueGW(k,year,qi);
       var allDone=Object.keys(due).every(function(gw){return getGWStatus(k.id,year,due[gw].srcQ,gw).done;});
       var nameDisplay=escHtml(k.objekt)+(k.zusatz?'<span class="kunde-zusatz"> – '+escHtml(k.zusatz)+'</span>':'');
       html+='<div class="kunde-card'+(allDone?' all-done':'')+'" data-id="'+escHtml(k.id)+'">';
       html+='<div class="kunde-top"><span class="kunde-name">'+nameDisplay+'</span>';
-      if(k.hasBmaQ){
-        var pruefLink=appUrls.pruef+'?ort='+encodeURIComponent(k.ort)+'&kunde='+encodeURIComponent(k.objekt);
-        html+='<a class="btn-pruef" href="'+escHtml(pruefLink)+'" target="_blank">Prüfliste →</a>';
-      }
       html+='</div><div class="gewerk-badges">';
       // Sort by GEWERKE_ORDER
       var sorted=GEWERKE_ORDER.filter(function(gw){return due[gw]!==undefined;});
@@ -579,10 +677,17 @@ function renderPlan(){
   });
   document.getElementById('kundenListe').innerHTML=html;
 
-  // Badge click → open checklist
+  // Badge click → open checklist (stopPropagation so card-click doesn't fire)
   document.getElementById('kundenListe').querySelectorAll('.gw-badge').forEach(function(btn){
-    btn.addEventListener('click',function(){
+    btn.addEventListener('click',function(e){
+      e.stopPropagation();
       openChecklist(btn.dataset.kid,btn.dataset.gw,parseInt(btn.dataset.srcq));
+    });
+  });
+  // Card click → open detail (fires when clicking outside badges)
+  document.getElementById('kundenListe').querySelectorAll('.kunde-card').forEach(function(card){
+    card.addEventListener('click',function(){
+      openKundeDetail(card.dataset.id);
     });
   });
 }
@@ -650,6 +755,10 @@ function openKundeModal(id){
   document.getElementById('keOrt').value=k?k.ort:'';
   document.getElementById('keObjekt').value=k?k.objekt:'';
   document.getElementById('keZusatz').value=k?k.zusatz:'';
+  document.getElementById('keAnschrift').value=k?k.anschrift||'':'';
+  document.getElementById('keAnsp').value=k?k.ansprechpartner||'':'';
+  document.getElementById('keTel').value=k?k.telefon||'':'';
+  document.getElementById('keEmail').value=k?k.email||'':'';
   document.getElementById('gewerkEditGrid').innerHTML=buildGewerkGrid(k?k.gewerke:{});
   document.getElementById('kundeModal').hidden=false;
 }
@@ -679,13 +788,18 @@ document.getElementById('kundeSaveBtn').addEventListener('click',function(){
   var ort=document.getElementById('keOrt').value.trim();
   var obj=document.getElementById('keObjekt').value.trim();
   var zus=document.getElementById('keZusatz').value.trim();
+  var anschrift=document.getElementById('keAnschrift').value.trim();
+  var ansp=document.getElementById('keAnsp').value.trim();
+  var tel=document.getElementById('keTel').value.trim();
+  var email=document.getElementById('keEmail').value.trim();
   if(!ort||!obj){toast('Ort und Objekt sind Pflichtfelder.','');return;}
   var gewerke=readGewerkFromModal();
+  var hasBmaQ=!!(gewerke['BMA']&&gewerke['BMA'].every(Boolean));
   if(_editKundeId){
     var k=KUNDEN.find(function(x){return x.id===_editKundeId;});
-    if(k){k.ort=ort;k.objekt=obj;k.zusatz=zus;k.gewerke=gewerke;}
+    if(k){k.ort=ort;k.objekt=obj;k.zusatz=zus;k.anschrift=anschrift;k.ansprechpartner=ansp;k.telefon=tel;k.email=email;k.gewerke=gewerke;k.hasBmaQ=hasBmaQ;}
   }else{
-    KUNDEN.push({id:uniqueSlug(ort,obj,zus),ort:ort,objekt:obj,zusatz:zus,gewerke:gewerke});
+    KUNDEN.push({id:uniqueSlug(ort,obj,zus),ort:ort,objekt:obj,zusatz:zus,anschrift:anschrift,ansprechpartner:ansp,telefon:tel,email:email,hasBmaQ:hasBmaQ,gewerke:gewerke});
   }
   KUNDEN.sort(function(a,b){return a.ort.localeCompare(b.ort,'de')||a.objekt.localeCompare(b.objekt,'de');});
   persistKunden();
@@ -720,6 +834,13 @@ function openChecklist(slug,gw,srcQ){
       +'<input type="checkbox" id="ci'+i+'"'+(checked?' checked':'')+' '+(st.done?' disabled':'')+' data-idx="'+i+'">'
       +'<label for="ci'+i+'">'+escHtml(item)+'</label></div>';
   });
+  // Prüfliste-Link als letzter Punkt in der BMA-Checkliste
+  if(gw==='BMA'&&kunde.hasBmaQ){
+    var pruefLink=appUrls.pruef+'?ort='+encodeURIComponent(kunde.ort)+'&kunde='+encodeURIComponent(kunde.objekt);
+    html+='<div class="check-item check-item-pruef">'
+      +'<a class="btn-pruef-modal" href="'+escHtml(pruefLink)+'" target="_blank">📋 Melder-Prüfliste öffnen →</a>'
+      +'</div>';
+  }
   document.getElementById('checkItems').innerHTML=html;
 
   var doneBanner=document.getElementById('doneBanner');
