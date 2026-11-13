@@ -2,7 +2,7 @@
   "name": "Wartungsübersicht – Elektro Krieg",
   "short_name": "Wartung EK",
   "description": "Wartungsplanung und Checklisten für Elektro Krieg Meiningen",
-  "start_url": "./Wartung.html",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#1c2430",
   "theme_color": "#1c2430",
