@@ -39,6 +39,7 @@ a{color:inherit;text-decoration:none;}
 #syncStatus.err{color:var(--err);}
 #syncStatus.busy{color:var(--warn);}
 #syncStatus.off{color:var(--muted);}
+#syncStatus.pending{color:var(--warn);}
 .icon-btn{background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;
   padding:4px 6px;border-radius:6px;}
 .icon-btn:hover{background:var(--surface2);color:var(--text);}
@@ -520,6 +521,25 @@ var ghConfig=null,ghSha={},appUrls={pruef:'../melder-pruefliste/',regie:'../regi
 var VORGEMERKT={}; // {year:{qi:{slug:maName}}} – geladen von wartung/vorgemerkt.json
 var ANLAGEN={}; // {slug:{gw:{informationen:'',hinweise:''}}} – geladen von wartung/anlagen.json
 var FAELLIGKEIT={}; // {slug:{gw:{year:{qi:month}}}} – geladen von wartung/faelligkeit.json
+
+// ── OFFLINE CACHE & QUEUE ─────────────────────────────────────
+var ANLAGEN_CACHE_KEY='wart_anlagen_cache_v1';
+var VGM_CACHE_KEY='wart_vorgemerkt_cache_v1';
+var FAELL_CACHE_KEY='wart_faelligkeit_cache_v1';
+var OFFLINE_Q_KEY='wart_offline_q_v1';
+var offlineQueue={slugs:{},files:{}};
+try{ANLAGEN=JSON.parse(localStorage.getItem(ANLAGEN_CACHE_KEY)||'{}');}catch(e){}
+try{VORGEMERKT=JSON.parse(localStorage.getItem(VGM_CACHE_KEY)||'{}');}catch(e){}
+try{FAELLIGKEIT=JSON.parse(localStorage.getItem(FAELL_CACHE_KEY)||'{}');}catch(e){}
+try{offlineQueue=JSON.parse(localStorage.getItem(OFFLINE_Q_KEY)||'{"slugs":{},"files":{}}');}catch(e){}
+function persistQueue(){localStorage.setItem(OFFLINE_Q_KEY,JSON.stringify(offlineQueue));}
+function queueSlug(slug){offlineQueue.slugs[slug]=true;persistQueue();_syncPendingLabel();}
+function queueFile(name){offlineQueue.files[name]=true;persistQueue();_syncPendingLabel();}
+function hasPending(){return Object.keys(offlineQueue.slugs).length>0||Object.keys(offlineQueue.files).length>0;}
+function _syncPendingLabel(){
+  var n=Object.keys(offlineQueue.slugs).length+Object.keys(offlineQueue.files).length;
+  if(n>0)setSyncStatus('pending','Sync ausstehend ('+n+')');
+}
 try{ghConfig=JSON.parse(localStorage.getItem(GH_KEY));}catch(e){}
 try{ghSha=JSON.parse(localStorage.getItem(GH_SHA_KEY)||'{}');}catch(e){}
 try{var u=JSON.parse(localStorage.getItem(URL_KEY)||'{}');if(u.pruef)appUrls.pruef=u.pruef;if(u.regie)appUrls.regie=u.regie;}catch(e){}
@@ -600,7 +620,8 @@ function pushStatus(slug){
           return attempt(t-1);
         });
       }
-      setSyncStatus('err','Sync fehlgeschlagen');
+      if(!navigator.onLine){queueSlug(slug);}
+      else{setSyncStatus('err','Sync fehlgeschlagen');}
     });
   }
   return attempt(3);
@@ -636,8 +657,8 @@ function toast(msg,cls){
 function loadAnlagen(){
   if(!ghIsConfigured())return Promise.resolve();
   return ghGetFile('wartung/anlagen.json').then(function(res){
-    if(res&&res.payload){ANLAGEN=res.payload;}
-  }).catch(function(){});
+    if(res&&res.payload){ANLAGEN=res.payload;localStorage.setItem(ANLAGEN_CACHE_KEY,JSON.stringify(ANLAGEN));}
+  }).catch(function(){/* offline – benutze gecachte Version */});
 }
 function getAnlagen(slug,gw){
   return((ANLAGEN[slug]||{})[gw])||{informationen:'',hinweise:''};
@@ -646,6 +667,7 @@ function saveAnlagen(slug,gw,field,value){
   if(!ANLAGEN[slug])ANLAGEN[slug]={};
   if(!ANLAGEN[slug][gw])ANLAGEN[slug][gw]={informationen:'',hinweise:''};
   ANLAGEN[slug][gw][field]=value;
+  localStorage.setItem(ANLAGEN_CACHE_KEY,JSON.stringify(ANLAGEN));
   if(!ghIsConfigured())return Promise.resolve();
   var path='wartung/anlagen.json';
   return ghGetFile(path).then(function(res){
@@ -655,16 +677,17 @@ function saveAnlagen(slug,gw,field,value){
     if(!data[slug][gw])data[slug][gw]={informationen:'',hinweise:''};
     data[slug][gw][field]=value;
     ANLAGEN=data;
+    localStorage.setItem(ANLAGEN_CACHE_KEY,JSON.stringify(ANLAGEN));
     return ghPutFile(path,ANLAGEN,'Anlagendaten – '+slug+'/'+gw,sha);
-  }).catch(function(){return ghPutFile(path,ANLAGEN,'Anlagendaten – '+slug+'/'+gw,null);});
+  }).catch(function(){queueFile('anlagen');return Promise.resolve();});
 }
 
 // ── FAELLIGKEIT (Fälligkeitsmonat) ───────────────────────────
 function loadFaelligkeit(){
   if(!ghIsConfigured())return Promise.resolve();
   return ghGetFile('wartung/faelligkeit.json').then(function(res){
-    if(res&&res.payload)FAELLIGKEIT=res.payload;
-  }).catch(function(){});
+    if(res&&res.payload){FAELLIGKEIT=res.payload;localStorage.setItem(FAELL_CACHE_KEY,JSON.stringify(FAELLIGKEIT));}
+  }).catch(function(){/* offline – benutze gecachte Version */});
 }
 function getFaelligkeit(slug,gw,year,qi){
   return(((FAELLIGKEIT[slug]||{})[gw]||{})[String(year)]||{})[String(qi)];
@@ -678,6 +701,7 @@ function saveFaelligkeit(slug,gw,year,qi,month){
   }else{
     FAELLIGKEIT[slug][gw][String(year)][String(qi)]=month;
   }
+  localStorage.setItem(FAELL_CACHE_KEY,JSON.stringify(FAELLIGKEIT));
   if(!ghIsConfigured())return Promise.resolve();
   var path='wartung/faelligkeit.json';
   return ghGetFile(path).then(function(res){
@@ -689,8 +713,9 @@ function saveFaelligkeit(slug,gw,year,qi,month){
     if(month===null||month===undefined){delete data[slug][gw][String(year)][String(qi)];}
     else{data[slug][gw][String(year)][String(qi)]=month;}
     FAELLIGKEIT=data;
+    localStorage.setItem(FAELL_CACHE_KEY,JSON.stringify(FAELLIGKEIT));
     return ghPutFile(path,FAELLIGKEIT,'Fälligkeit – '+slug+'/'+gw,sha);
-  }).catch(function(){return ghPutFile(path,FAELLIGKEIT,'Fälligkeit – '+slug+'/'+gw,null);});
+  }).catch(function(){queueFile('faelligkeit');});
 }
 
 // ── Fälligkeitsmonat-Popup ────────────────────────────────────
@@ -813,8 +838,8 @@ function openAnlagenPopup(slug,gw,field){
 function loadVorgemerkt(){
   if(!ghIsConfigured())return Promise.resolve();
   return ghGetFile('wartung/vorgemerkt.json').then(function(res){
-    if(res&&res.payload){VORGEMERKT=res.payload;}
-  }).catch(function(){});
+    if(res&&res.payload){VORGEMERKT=res.payload;localStorage.setItem(VGM_CACHE_KEY,JSON.stringify(VORGEMERKT));}
+  }).catch(function(){/* offline – benutze gecachte Version */});
 }
 function getVorgemerkt(slug,year,qi){
   return((VORGEMERKT[String(year)]||{})[String(qi)]||{})[slug]||'';
@@ -824,6 +849,7 @@ function saveVorgemerkt(slug,year,qi,name){
   if(!VORGEMERKT[String(year)][String(qi)])VORGEMERKT[String(year)][String(qi)]={};
   if(name){VORGEMERKT[String(year)][String(qi)][slug]=name;}
   else{delete VORGEMERKT[String(year)][String(qi)][slug];}
+  localStorage.setItem(VGM_CACHE_KEY,JSON.stringify(VORGEMERKT));
   if(!ghIsConfigured())return Promise.resolve();
   var path='wartung/vorgemerkt.json';
   function attempt(sha){
@@ -855,7 +881,7 @@ function saveVorgemerkt(slug,year,qi,name){
       VORGEMERKT=remote;
     }
     return attempt(sha);
-  }).catch(function(){return attempt(null);});
+  }).catch(function(){queueFile('vorgemerkt');});
 }
 
 // ── NAME POPUP ────────────────────────────────────────────────
@@ -1612,8 +1638,24 @@ if('serviceWorker' in navigator){
   });
 }
 
+// ── ONLINE EVENT – flush queued writes ────────────────────────
+window.addEventListener('online',function(){
+  if(!ghIsConfigured()||!hasPending())return;
+  setSyncStatus('busy','Verbindung wiederhergestellt, synchronisiere …');
+  var promises=[];
+  Object.keys(offlineQueue.slugs).forEach(function(slug){promises.push(pushStatus(slug));});
+  if(offlineQueue.files.anlagen){promises.push(ghGetFile('wartung/anlagen.json').then(function(res){return ghPutFile('wartung/anlagen.json',ANLAGEN,'Anlagendaten (Offline-Sync)',res?res.sha:null);}));}
+  if(offlineQueue.files.faelligkeit){promises.push(ghGetFile('wartung/faelligkeit.json').then(function(res){return ghPutFile('wartung/faelligkeit.json',FAELLIGKEIT,'Fälligkeit (Offline-Sync)',res?res.sha:null);}));}
+  if(offlineQueue.files.vorgemerkt){promises.push(ghGetFile('wartung/vorgemerkt.json').then(function(res){return ghPutFile('wartung/vorgemerkt.json',VORGEMERKT,'Vorgemerkt (Offline-Sync)',res?res.sha:null);}));}
+  Promise.all(promises).then(function(){
+    offlineQueue={slugs:{},files:{}};persistQueue();
+    setSyncStatus('ok','Synchron');toast('↑ Offline-Änderungen synchronisiert','ok');
+  }).catch(function(){setSyncStatus('err','Sync fehlgeschlagen');});
+});
+
 // ── INIT ──────────────────────────────────────────────────────
 setSyncStatus(ghIsConfigured()?'ok':'off',ghIsConfigured()?'Synchron':'Nicht verbunden');
+_syncPendingLabel();
 if(ghIsConfigured()){
   Promise.all([loadVorgemerkt(),loadAnlagen(),loadFaelligkeit()]).then(function(){renderAll();});
 }else{renderAll();}
