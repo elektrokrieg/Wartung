@@ -2359,23 +2359,31 @@ function csvFindCol(headers,names,fallbackIdx){
 
 function parseCsvGroups(rows,type){
   if(!rows||rows.length<2)return null;
-  var headers=rows[0].map(function(h){return h.trim().toLowerCase().replace(/[^a-z0-9äöü]/g,'');});
 
-  // Spalte A = Nr (fast immer erste Spalte; Esser-Export: Spalte A)
+  // Echte Header-Zeile finden: erste Zeile wo Spalte A nach Normalisierung "nr" ist
+  // (Esser-Export hat Titelzeile + Leerzeile vor der echten Header-Zeile)
+  var headerRowIdx=0;
+  for(var ri=0;ri<Math.min(rows.length,5);ri++){
+    var c0=(rows[ri][0]||'').trim().toLowerCase().replace(/[^a-z0-9]/g,'');
+    if(c0==='nr'||c0==='nr'||c0==='nummer'){headerRowIdx=ri;break;}
+  }
+  var headers=rows[headerRowIdx].map(function(h){return h.trim().toLowerCase().replace(/[^a-z0-9äöü]/g,'');});
+
+  // Spalte A = Nr (Esser-Export: Spalte A)
   var iNr=csvFindCol(headers,['nr','nummer','gruppe','group','meldegruppe','steuergruppe','grp','no'],0);
-  // Spalte B = Bezeichnung (Esser: Spalte B = Index 1)
-  var iText=csvFindCol(headers,['bezeichnung','name','text','zusatztext','description','titel','label'],1);
-  // Spalte G = Melder-Anzahl (Esser-Meldergruppen: Spalte G = Index 6)
-  var iMelder=csvFindCol(headers,['anzahlmelder','anzahl','melder','count','quantity'],6);
-  // Ringleitung (Esser: typisch Spalte C oder D)
+  // Spalte B = Bezeichnung/Zusatztext (Esser: Spalte B = Index 1)
+  var iText=csvFindCol(headers,['zusatztext','bezeichnung','name','text','description','titel','label'],1);
+  // Spalte G = Anz.Melder (Esser: Index 6 — KEIN Name-Match auf 'melder' wegen Titelzeilen-Konflikt)
+  var iMelder=csvFindCol(headers,['anzmelder','anzahlmelder','melderanzahl'],6);
+  // Ringleitung
   var iRgl=csvFindCol(headers,['ringleitung','rgl','ring','rl','ringline'],-1);
   // Art des Ausgangs (Steuergruppen)
-  var iArt=csvFindCol(headers,['artdesausgangs','art','ausgang','type','ausgangsart'],-1);
+  var iArt=csvFindCol(headers,['artdesausgangs','ausgang','type','ausgangsart'],-1);
 
   if(iNr<0){return{error:'Spalte "Nr." (Spalte A) nicht gefunden.'};}
 
   var parsed=[];
-  rows.slice(1).forEach(function(r){
+  rows.slice(headerRowIdx+1).forEach(function(r){
     if(!r||!r.length)return;
     var nr=parseInt((r[iNr]||'').toString().trim(),10);
     if(isNaN(nr))return;
