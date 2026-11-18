@@ -2097,11 +2097,19 @@ function buildAnlEditForm(slug,anl,isNew){
   h+='</div>';
 
   // Wählgerät / Übertragungseinrichtung
-  var wg=(a&&a.waehlgeraet)||{typ:'',meldungen:[]};
+  var wg=(a&&a.waehlgeraet)||{typ:'',meldungen:[],akkus:[]};
   var wgMl=wg.meldungen||[];
+  var wgAkkus=wg.akkus||[];
   h+='<div class="anl-edit-section">';
   h+='<div class="anl-edit-section-title">Wählgerät / Übertragungseinrichtung</div>';
   h+='<div class="anl-edit-row"><label>Typ / Modell</label><input id="wgTyp" type="text" value="'+escHtml(wg.typ||'')+'" placeholder="z.B. Telenot comXline 1516 GSM"></div>';
+  // Akkus Wählgerät
+  h+='<div style="font-size:.78rem;font-weight:600;color:var(--muted);margin:8px 0 4px;">Akkus:</div>';
+  h+='<div id="wgAkkuList">';
+  wgAkkus.forEach(function(ak,i){h+=wgAkkuBlock(i,ak);});
+  h+='</div>';
+  h+='<button class="anl-add-btn" onclick="addWgAkku()">+ Akku hinzufügen</button>';
+  // Meldungen
   h+='<div style="font-size:.78rem;font-weight:600;color:var(--muted);margin:8px 0 4px;">Meldungen:</div>';
   h+='<div id="wgMeldungList">';
   wgMl.forEach(function(m,i){h+=wgMeldungBlock(i,m);});
@@ -2181,6 +2189,20 @@ function ntBlock(i,nt){
     +'<button class="anl-add-btn" onclick="addNtAkkuRow('+i+')">+ Akku</button></div>';
 }
 
+function wgAkkuBlock(i,ak){
+  return '<div class="anl-edit-list-item" id="wgAkkuRow'+i+'">'
+    +'<input type="text" placeholder="Typ z.B. Sun 12V 7Ah" value="'+escHtml((ak&&ak.typ)||'')+'" data-wgakku-typ="'+i+'" style="flex:2;">'
+    +'<input type="text" placeholder="Kapaz." value="'+escHtml((ak&&ak.kapazitaet)||'')+'" data-wgakku-kap="'+i+'" style="max-width:80px;">'
+    +'<input type="month" value="'+escHtml((ak&&ak.einbau)||'')+'" data-wgakku-einbau="'+i+'" style="max-width:130px;">'
+    +'<button class="anl-remove-btn" onclick="removeListItem(this.parentElement)">✕</button></div>';
+}
+function addWgAkku(){
+  var list=document.getElementById('wgAkkuList');
+  if(!list)return;
+  var i=list.querySelectorAll('.anl-edit-list-item').length;
+  var d=document.createElement('div');d.innerHTML=wgAkkuBlock(i,{});
+  list.appendChild(d.firstChild);
+}
 function wgMeldungBlock(i,m){
   return '<div class="anl-edit-list-item" id="wgMlRow'+i+'">'
     +'<input type="text" placeholder="Nr. z.B. ML 1" value="'+escHtml((m&&m.nr)||'')+'" data-wgml-nr="'+i+'" style="max-width:90px;">'
@@ -2327,8 +2349,19 @@ function saveAnlEdit(){
     if(!n)return;
     wgMlArr.push({nr:n,funktion:fn?fn.value.trim():''});
   });
-  if(wgTypVal||wgMlArr.length){
-    anl.waehlgeraet={typ:wgTypVal,meldungen:wgMlArr};
+  // Wählgerät-Akkus auslesen
+  var wgAkkuEls=document.querySelectorAll('#wgAkkuList .anl-edit-list-item');
+  var wgAkkuArr=[];
+  wgAkkuEls.forEach(function(el){
+    var t=el.querySelector('[data-wgakku-typ]');
+    var k=el.querySelector('[data-wgakku-kap]');
+    var e=el.querySelector('[data-wgakku-einbau]');
+    var typ=t?t.value.trim():'';
+    if(!typ)return;
+    wgAkkuArr.push({typ:typ,kapazitaet:k?k.value.trim():'',einbau:e?e.value.trim():''});
+  });
+  if(wgTypVal||wgMlArr.length||wgAkkuArr.length){
+    anl.waehlgeraet={typ:wgTypVal,akkus:wgAkkuArr,meldungen:wgMlArr};
   } else {
     delete anl.waehlgeraet;
   }
@@ -2656,6 +2689,8 @@ function renderBmaCheckItems(tmpl,anl,st,isDone){
   }
 
   tmpl.abschnitte.forEach(function(abschnitt){
+    // Netzteile-Abschnitt ausblenden wenn keine Netzteile in Anlagendaten
+    if(abschnitt.netzteile_dynamisch&&!netzteile.length)return;
     html+='<div class="chk-section-title">'+escHtml(abschnitt.titel)+'</div>';
     abschnitt.punkte.forEach(function(punkt){
       var pid=abschnitt.id+'_'+punkt.id;
@@ -3133,6 +3168,21 @@ function generateProtokoll(slug,year,qi){
     });
     if(!ml.length)html2+='<tr><td colspan="3" class="c" style="color:#aaa;">Keine Meldungen hinterlegt</td></tr>';
     html2+='</tbody></table>';
+    // Akkus Wählgerät
+    var wgAkkus=wg.akkus||[];
+    if(wgAkkus.length){
+      html2+='<table style="margin-top:3pt;"><thead><tr>'
+        +'<th>Akku Wählgerät</th><th style="width:30mm;">Kapazität</th><th style="width:30mm;">Einbaudatum</th>'
+        +'</tr></thead><tbody>';
+      wgAkkus.forEach(function(ak,i){
+        html2+='<tr'+(i%2===1?' class="grau"':'')+'>'
+          +'<td class="b">'+esc(ak.typ||'')+'</td>'
+          +'<td class="c">'+esc(ak.kapazitaet||'–')+'</td>'
+          +'<td class="c">'+esc(ak.einbau||'–')+'</td>'
+          +'</tr>';
+      });
+      html2+='</tbody></table>';
+    }
     return html2;
   }
 
@@ -3172,15 +3222,17 @@ function generateProtokoll(slug,year,qi){
       mgSeiten.push(meldegruppen.slice(i,i+MG_PRO_SEITE));
     }
   } else { mgSeiten=[[]]; }
-  var hatSeite2=(anl&&anl.waehlgeraet)||mgSeiten.length>1;
-  var gesamtSeiten=1+(mgSeiten.length-1)+(hatSeite2?1:0);
+  var hatExtraSeiten=mgSeiten.length>1;
+  var gesamtSeiten=mgSeiten.length;
 
+  // Wählgerät kommt direkt nach den Meldegruppen auf Seite 1
   var p1='<div class="page">'
     +pageHeader(1,gesamtSeiten)
     +objektBlock()
     +akkuTabelle()
     +geraetepruefung()
     +meldegruppenTabelle(mgSeiten[0]||[])
+    +waehlgeraetTabelle()
     // Bemerkungen / Material
     +'<h3>Prüfabschluss</h3>'
     +'<div class="notiz-lbl">Bemerkungen:</div><div class="notiz">'+tf('bemerkungen')+'</div>'
@@ -3189,27 +3241,17 @@ function generateProtokoll(slug,year,qi){
     +unterschriften()
     +'</div>';
 
-  // ── Weitere Seiten (Meldegruppen-Fortsetzung) ────────────────────────
+  // ── Weitere Seiten (Meldegruppen-Fortsetzung, >22 Gruppen) ───────────
   var extraSeiten='';
   for(var s=1;s<mgSeiten.length;s++){
     extraSeiten+='<div class="page">'
       +pageHeader(1+s,gesamtSeiten)
       +objektBlock()
       +meldegruppenTabelle(mgSeiten[s],'Meldegruppen (Fortsetzung)')
-      +'</div>';
-  }
-
-  // ── Seite 2: Netzteile + Steuergruppen ──────────────────────────────
-  var seite2='';
-  if(hatSeite2&&(anl&&anl.waehlgeraet)){
-    var s2nr=mgSeiten.length+1;
-    seite2='<div class="page">'
-      +pageHeader(s2nr,gesamtSeiten)
-      +objektBlock()
-      +waehlgeraetTabelle()
       +unterschriften()
       +'</div>';
   }
+  var seite2='';
 
   var html='<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8">'
     +'<title>BMA-Wartungsprotokoll – '+esc(kunde.objekt||slug)+'</title>'
