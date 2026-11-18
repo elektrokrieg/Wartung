@@ -213,6 +213,9 @@ a{color:inherit;text-decoration:none;}
 .check-item.checked label{color:var(--muted);text-decoration:line-through;}
 .chk-link-btn{font-size:.72rem;padding:3px 8px;border-radius:5px;background:rgba(52,152,219,.12);border:1px solid rgba(52,152,219,.35);color:var(--accent);text-decoration:none;white-space:nowrap;flex-shrink:0;align-self:center;}
 .chk-link-btn:hover{background:var(--accent);color:#fff;}
+.chk-auf-info{margin:1px 0 6px 28px;display:flex;align-items:center;gap:6px;font-size:.76rem;padding:3px 10px;background:rgba(52,152,219,.07);border-left:3px solid var(--accent);border-radius:0 5px 5px 0;}
+.chk-auf-lbl{font-weight:700;color:var(--accent);flex-shrink:0;}
+.chk-auf-tel{color:var(--text);font-family:monospace;font-size:.78rem;}
 .chk-sg-list{margin:2px 0 8px 28px;display:flex;flex-direction:column;gap:3px;}
 .chk-sg-item{display:flex;align-items:center;gap:6px;font-size:.76rem;padding:3px 8px;background:var(--surface2);border-radius:5px;border:1px solid var(--border);}
 .chk-sg-nr{font-weight:700;color:var(--accent);min-width:38px;flex-shrink:0;}
@@ -1990,14 +1993,55 @@ function buildAnlEditForm(slug,anl,isNew){
   h+='</div>';
 
   // Stammdaten
+  var HERSTELLER_TYPEN={
+    'Esser':['ES Line','8000-C','8000-M','IQ8 Control C','IQ8 Control M','Flex ES'],
+    'Telenot':['Hifire 4100XS','Hifire 4400']
+  };
+  var curHersteller=a.hersteller||'Esser';
+  var curTyp=a.typ||'';
   h+='<div class="anl-edit-section"><div class="anl-edit-section-title">Stammdaten</div>';
-  h+=fRow('Hersteller','anlHersteller',a.hersteller||'','text','z.B. Esser, Siemens, Bosch');
-  h+=fRow('Typ / Modell','anlTyp',a.typ||'','text','z.B. IQ8 Control-M');
+  // Hersteller-Dropdown
+  h+='<div class="anl-edit-row"><label>Hersteller</label><select id="anlHersteller" onchange="anlUpdateTypDropdown()">';
+  ['Esser','Telenot'].forEach(function(hst){
+    h+='<option value="'+escHtml(hst)+'"'+(curHersteller===hst?' selected':'')+'>'+escHtml(hst)+'</option>';
+  });
+  h+='</select></div>';
+  // Typ-Dropdown (befüllt je nach Hersteller)
+  h+='<div class="anl-edit-row"><label>Typ / Modell</label><select id="anlTyp">';
+  var typListe=HERSTELLER_TYPEN[curHersteller]||[];
+  typListe.forEach(function(t){
+    h+='<option value="'+escHtml(t)+'"'+(curTyp===t?' selected':'')+'>'+escHtml(t)+'</option>';
+  });
+  h+='</select></div>';
   h+=fRow('Baujahr','anlBaujahr',a.baujahr||'','number','');
   h+=fRow('Zentrale-Nr.','anlZentraleNr',a.zentraleNr||'','text','');
   h+=fRow('Standort BMZ','anlStandort',a.standort||'','text','z.B. EG Flur');
   h+=fRow('Software','anlSoftware',a.softwareVersion||'','text','');
   h+=fRow('Checklisten-ID','anlCheckliste',a.checkliste||'bma-esser','text','z.B. bma-esser');
+  // Aufschaltung
+  var AUFSCHALTUNG_OPTS=[
+    {id:'hausalarm',lbl:'Hausalarm',tel:''},
+    {id:'siemens',lbl:'Siemens',tel:'0911/656546112'},
+    {id:'bosch',lbl:'Bosch',tel:'089/250062001'},
+    {id:'chupp',lbl:'Chupp',tel:'',chupp:true},
+    {id:'itt',lbl:'ITT',tel:'0361/6726150'},
+    {id:'meiningen',lbl:'Leitstelle Meiningen',tel:'03693/886000'},
+    {id:'gotha',lbl:'Leitstelle Gotha',tel:'03621/365512'},
+    {id:'apolda',lbl:'Leitstelle Apolda',tel:'03644/50000'}
+  ];
+  var curAuf=a.aufschaltung||'hausalarm';
+  h+='<div class="anl-edit-row"><label>Aufschaltung</label><select id="anlAufschaltung" onchange="anlUpdateChupp()">';
+  AUFSCHALTUNG_OPTS.forEach(function(o){
+    var lblTel=o.tel?escHtml(o.lbl+' ('+o.tel+')'):escHtml(o.lbl);
+    h+='<option value="'+escHtml(o.id)+'"'+(curAuf===o.id?' selected':'')+'>'+lblTel+'</option>';
+  });
+  h+='</select></div>';
+  // Chupp-Felder (Störung + Feuer, nur sichtbar wenn Chupp)
+  var chuppVis=curAuf==='chupp';
+  h+='<div id="anlChuppFelder" style="'+(chuppVis?'':'display:none;')+'">';
+  h+='<div class="anl-edit-row"><label>Chupp Störung</label><input id="anlChuppStoerung" type="text" value="'+escHtml(a.chuppStoerung||'0351/8664974')+'" placeholder="Telefon Störung"></div>';
+  h+='<div class="anl-edit-row"><label>Chupp Feuer</label><input id="anlChuppFeuer" type="text" value="'+escHtml(a.chuppFeuer||'0351/8664974')+'" placeholder="Telefon Feuer"></div>';
+  h+='</div>';
   h+='</div>';
 
   // Akkus BMZ
@@ -2183,6 +2227,22 @@ function addNtAkkuRow(ntIdx){
 }
 function removeListItem(el){el.parentElement.removeChild(el);}
 
+var _HERSTELLER_TYPEN={'Esser':['ES Line','8000-C','8000-M','IQ8 Control C','IQ8 Control M','Flex ES'],'Telenot':['Hifire 4100XS','Hifire 4400']};
+function anlUpdateTypDropdown(){
+  var hEl=document.getElementById('anlHersteller');
+  var tEl=document.getElementById('anlTyp');
+  if(!hEl||!tEl)return;
+  var hst=hEl.value;
+  var typen=_HERSTELLER_TYPEN[hst]||[];
+  tEl.innerHTML='';
+  typen.forEach(function(t){var o=document.createElement('option');o.value=t;o.textContent=t;tEl.appendChild(o);});
+}
+function anlUpdateChupp(){
+  var el=document.getElementById('anlAufschaltung');
+  var div=document.getElementById('anlChuppFelder');
+  if(el&&div)div.style.display=el.value==='chupp'?'':'none';
+}
+
 function saveAnlEdit(){
   var origSlug=_currentAnlSlug;
   var selEl=document.getElementById('anlEditKunde');
@@ -2196,6 +2256,13 @@ function saveAnlEdit(){
   anl.slug=slug;
   anl.hersteller=gv('anlHersteller');
   anl.typ=gv('anlTyp');
+  anl.aufschaltung=gv('anlAufschaltung');
+  if(anl.aufschaltung==='chupp'){
+    anl.chuppStoerung=gv('anlChuppStoerung');
+    anl.chuppFeuer=gv('anlChuppFeuer');
+  } else {
+    delete anl.chuppStoerung; delete anl.chuppFeuer;
+  }
   var bj=parseInt(gv('anlBaujahr'),10);anl.baujahr=isNaN(bj)?null:bj;
   anl.zentraleNr=gv('anlZentraleNr');
   anl.standort=gv('anlStandort');
@@ -2553,6 +2620,26 @@ function openBmaChecklist(slug,gw,srcQ){
   });
 }
 
+var _AUFSCHALTUNG_TEL={
+  'hausalarm':'','siemens':'0911/656546112','bosch':'089/250062001',
+  'itt':'0361/6726150','meiningen':'03693/886000','gotha':'03621/365512','apolda':'03644/50000'
+};
+var _AUFSCHALTUNG_LBL={
+  'hausalarm':'Hausalarm','siemens':'Siemens','bosch':'Bosch','chupp':'Chupp',
+  'itt':'ITT','meiningen':'Leitstelle Meiningen','gotha':'Leitstelle Gotha','apolda':'Leitstelle Apolda'
+};
+function getAufschaltungInfo(anl){
+  if(!anl||!anl.aufschaltung)return null;
+  var id=anl.aufschaltung;
+  if(id==='hausalarm')return null;
+  if(id==='chupp'){
+    return {lbl:'Chupp',lines:['Störung: '+(anl.chuppStoerung||'0351/8664974'),'Feuer: '+(anl.chuppFeuer||'0351/8664974')]};
+  }
+  var tel=_AUFSCHALTUNG_TEL[id];
+  if(!tel)return null;
+  return {lbl:_AUFSCHALTUNG_LBL[id]||id,lines:[tel]};
+}
+
 function renderBmaCheckItems(tmpl,anl,st,isDone){
   var checked=st.checked||{};
   var messungen=st.messungen||{};
@@ -2560,6 +2647,7 @@ function renderBmaCheckItems(tmpl,anl,st,isDone){
   var ringleitungen=(anl&&anl.ringleitungen)||[];
   var netzteile=(anl&&anl.netzteile)||[];
   var dis=isDone?' disabled':'';
+  var auf=getAufschaltungInfo(anl);
   var html='';
 
   if(!tmpl){
@@ -2617,11 +2705,20 @@ function renderBmaCheckItems(tmpl,anl,st,isDone){
       }
 
       // Simple checkbox (optional link button)
+      // Leitstellen-Info bei abmelden/anmelden anzeigen
+      var leitstelleHint='';
+      if(auf&&(punkt.id==='abmelden'||punkt.id==='anmelden')){
+        leitstelleHint='<div class="chk-auf-info">'
+          +'<span class="chk-auf-lbl">'+escHtml(auf.lbl)+':</span>'
+          +auf.lines.map(function(l){return '<span class="chk-auf-tel">'+escHtml(l)+'</span>';}).join('')
+          +'</div>';
+      }
       html+='<div class="check-item'+(isChecked?' checked':'')+'" data-bma-pid="'+escHtml(pid)+'">'
         +'<input type="checkbox" id="bci_'+escHtml(pid)+'"'+(isChecked?' checked':'')+dis+'>'
         +'<label for="bci_'+escHtml(pid)+'">'+escHtml(punkt.text)+'</label>'
         +(punkt.link?'<a class="chk-link-btn" href="'+escHtml(punkt.link)+'" target="_blank" rel="noopener">↗ Öffnen</a>':'')
-        +'</div>';
+        +'</div>'
+        +leitstelleHint;
       // Steuergruppen-Liste unterhalb relevanter Punkte
       var sgs=(anl&&anl.steuergruppen)||[];
       if(punkt.id==='steuergruppen_ab'&&sgs.length){
@@ -2773,7 +2870,13 @@ function generateProtokoll(slug,year,qi){
   var ringleitungen=(anl&&anl.ringleitungen)||[];
   var netzteile=(anl&&anl.netzteile)||[];
   var meldegruppen=(anl&&anl.meldegruppen)||[];
-  // Steuergruppen werden im Protokoll nicht dargestellt (nur in der Checkliste)
+  // 24V-Anlage: Flex ES (Esser) und alle Telenot-Anlagen → Akku 1+2 Summen-Spalte
+  var is24V=(function(){
+    if(!anl)return false;
+    if(anl.hersteller==='Telenot')return true;
+    if(anl.hersteller==='Esser'&&anl.typ==='Flex ES')return true;
+    return false;
+  })();
   var qNames=['Q1','Q2','Q3','Q4'];
   var qMonths=['Januar – März','April – Juni','Juli – September','Oktober – Dezember'];
 
@@ -2885,27 +2988,51 @@ function generateProtokoll(slug,year,qi){
     var a2e=v('akku2_erh'), a2m=v('akku2_30min');
     var sume=( a1e&&a2e ? (parseFloat(a1e)+parseFloat(a2e)).toFixed(2) : '' );
     var summ=( a1m&&a2m ? (parseFloat(a1m)+parseFloat(a2m)).toFixed(2) : '' );
-    var html2='<h3>Akkuspannung BMZ</h3>'
-      +'<table><thead><tr>'
-      +'<th style="width:38%"></th>'
-      +'<th class="akku-th" style="width:16%">Akku 1</th>'
-      +'<th class="akku-th" style="width:16%">Akku 2</th>'
-      +'<th class="akku-th" style="width:16%">Akku 1 + 2</th>'
-      +'<th style="width:14%">Einheit</th>'
-      +'</tr></thead><tbody>';
-    html2+='<tr class="grau"><td class="akku-lbl">Bei Erhaltungsladung</td>'
-      +'<td class="c b">'+(a1e||'–')+'</td><td class="c b">'+(a2e||'–')+'</td>'
-      +'<td class="c b">'+(sume||'–')+'</td><td class="c">V</td></tr>';
-    html2+='<tr><td class="akku-lbl">Dauer der Entladung</td>'
-      +'<td class="c" colspan="3">30 min</td><td class="c">min</td></tr>';
-    html2+='<tr class="grau"><td class="akku-lbl">Entladungsspannung nach 30 min</td>'
-      +'<td class="c b">'+(a1m||'–')+'</td><td class="c b">'+(a2m||'–')+'</td>'
-      +'<td class="c b">'+(summ||'–')+'</td><td class="c">V</td></tr>';
-    html2+='<tr><td class="akku-lbl">Entladestrom bei Netzausfall</td>'
-      +'<td class="c b" colspan="3">'+vDisp('strom_ruhe','A')+'</td><td class="c">A</td></tr>';
-    html2+='<tr class="grau"><td class="akku-lbl">Entladestrom Netzausfall + Alarm</td>'
-      +'<td class="c b" colspan="3">'+vDisp('strom_alarm','A')+'</td><td class="c">A</td></tr>';
-    html2+='</tbody></table>';
+    var html2='<h3>Akkuspannung BMZ</h3>';
+    if(is24V){
+      // 24V: 4 Datenspalten (Akku 1, Akku 2, Akku 1+2, Einheit)
+      html2+='<table><thead><tr>'
+        +'<th style="width:38%"></th>'
+        +'<th class="akku-th" style="width:16%">Akku 1</th>'
+        +'<th class="akku-th" style="width:16%">Akku 2</th>'
+        +'<th class="akku-th" style="width:16%">Akku 1 + 2</th>'
+        +'<th style="width:14%">Einheit</th>'
+        +'</tr></thead><tbody>';
+      html2+='<tr class="grau"><td class="akku-lbl">Bei Erhaltungsladung</td>'
+        +'<td class="c b">'+(a1e||'–')+'</td><td class="c b">'+(a2e||'–')+'</td>'
+        +'<td class="c b">'+(sume||'–')+'</td><td class="c">V</td></tr>';
+      html2+='<tr><td class="akku-lbl">Dauer der Entladung</td>'
+        +'<td class="c" colspan="3">30 min</td><td class="c">min</td></tr>';
+      html2+='<tr class="grau"><td class="akku-lbl">Entladungsspannung nach 30 min</td>'
+        +'<td class="c b">'+(a1m||'–')+'</td><td class="c b">'+(a2m||'–')+'</td>'
+        +'<td class="c b">'+(summ||'–')+'</td><td class="c">V</td></tr>';
+      html2+='<tr><td class="akku-lbl">Entladestrom bei Netzausfall</td>'
+        +'<td class="c b" colspan="3">'+vDisp('strom_ruhe','A')+'</td><td class="c">A</td></tr>';
+      html2+='<tr class="grau"><td class="akku-lbl">Entladestrom Netzausfall + Alarm</td>'
+        +'<td class="c b" colspan="3">'+vDisp('strom_alarm','A')+'</td><td class="c">A</td></tr>';
+      html2+='</tbody></table>';
+    } else {
+      // 12V: nur Akku 1 und Akku 2 (keine Summen-Spalte)
+      html2+='<table><thead><tr>'
+        +'<th style="width:46%"></th>'
+        +'<th class="akku-th" style="width:20%">Akku 1</th>'
+        +'<th class="akku-th" style="width:20%">Akku 2</th>'
+        +'<th style="width:14%">Einheit</th>'
+        +'</tr></thead><tbody>';
+      html2+='<tr class="grau"><td class="akku-lbl">Bei Erhaltungsladung</td>'
+        +'<td class="c b">'+(a1e||'–')+'</td><td class="c b">'+(a2e||'–')+'</td>'
+        +'<td class="c">V</td></tr>';
+      html2+='<tr><td class="akku-lbl">Dauer der Entladung</td>'
+        +'<td class="c" colspan="2">30 min</td><td class="c">min</td></tr>';
+      html2+='<tr class="grau"><td class="akku-lbl">Entladungsspannung nach 30 min</td>'
+        +'<td class="c b">'+(a1m||'–')+'</td><td class="c b">'+(a2m||'–')+'</td>'
+        +'<td class="c">V</td></tr>';
+      html2+='<tr><td class="akku-lbl">Entladestrom bei Netzausfall</td>'
+        +'<td class="c b" colspan="2">'+vDisp('strom_ruhe','A')+'</td><td class="c">A</td></tr>';
+      html2+='<tr class="grau"><td class="akku-lbl">Entladestrom Netzausfall + Alarm</td>'
+        +'<td class="c b" colspan="2">'+vDisp('strom_alarm','A')+'</td><td class="c">A</td></tr>';
+      html2+='</tbody></table>';
+    }
     // Erdschlussmessung
     var pe=v('plus_erde'), me=v('minus_erde');
     html2+='<table style="margin-top:3pt;"><tbody>'
