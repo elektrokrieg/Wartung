@@ -3213,30 +3213,26 @@ function generateProtokoll(slug,year,qi){
       +'</div>';
   }
 
-  // ── Seite 1 ──────────────────────────────────────────────────────────
-  // Seite 1 hat weniger Platz (Objektblock, Akkus, Geräteprüfung, Wählgerät, Prüfabschluss)
-  // Folgeseiten können mehr Meldegruppen aufnehmen
-  var MG_SEITE1=14;
+  // ── Seitenaufbau ─────────────────────────────────────────────────────
+  // Seite 1: Objektblock, Akkus, Geräteprüfung, Wählgerät, Prüfabschluss, Unterschriften
+  // Seite 2+: Meldegruppen (22 pro Seite)
   var MG_PRO_SEITE=22;
   var mgSeiten=[];
   if(meldegruppen.length){
-    mgSeiten.push(meldegruppen.slice(0,MG_SEITE1));
-    for(var i=MG_SEITE1;i<meldegruppen.length;i+=MG_PRO_SEITE){
+    for(var i=0;i<meldegruppen.length;i+=MG_PRO_SEITE){
       mgSeiten.push(meldegruppen.slice(i,i+MG_PRO_SEITE));
     }
-  } else { mgSeiten=[[]]; }
-  var hatExtraSeiten=mgSeiten.length>1;
-  var gesamtSeiten=mgSeiten.length;
+  }
+  var hatMeldegruppen=mgSeiten.length>0;
+  var gesamtSeiten=1+mgSeiten.length;
 
-  // Wählgerät kommt direkt nach den Meldegruppen auf Seite 1
+  // Seite 1: Stammdaten + Wählgerät + Prüfabschluss
   var p1='<div class="page">'
     +pageHeader(1,gesamtSeiten)
     +objektBlock()
     +akkuTabelle()
     +geraetepruefung()
-    +meldegruppenTabelle(mgSeiten[0]||[])
     +waehlgeraetTabelle()
-    // Bemerkungen / Material
     +'<h3>Prüfabschluss</h3>'
     +'<div class="notiz-lbl">Bemerkungen:</div><div class="notiz">'+tf('bemerkungen')+'</div>'
     +'<div class="notiz-lbl">Mängel:</div><div class="notiz">'+tf('maengel')+'</div>'
@@ -3244,14 +3240,14 @@ function generateProtokoll(slug,year,qi){
     +unterschriften()
     +'</div>';
 
-  // ── Weitere Seiten (Meldegruppen-Fortsetzung, >22 Gruppen) ───────────
+  // Seite 2+: Meldegruppen
   var extraSeiten='';
-  for(var s=1;s<mgSeiten.length;s++){
+  for(var s=0;s<mgSeiten.length;s++){
     extraSeiten+='<div class="page">'
-      +pageHeader(1+s,gesamtSeiten)
+      +pageHeader(2+s,gesamtSeiten)
       +objektBlock()
-      +meldegruppenTabelle(mgSeiten[s],'Meldegruppen (Fortsetzung)')
-      +unterschriften()
+      +meldegruppenTabelle(mgSeiten[s],s===0?null:'Meldegruppen (Fortsetzung)')
+      +(s===mgSeiten.length-1?unterschriften():'')
       +'</div>';
   }
   var seite2='';
