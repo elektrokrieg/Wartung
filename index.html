@@ -719,7 +719,11 @@ function mergeStatus(local,remote){
       Object.keys(remote[year][qi]).forEach(function(gw){
         var r=remote[year][qi][gw],l=out[year][qi][gw]||{};
         var items=(r.items||[]).map(function(v,i){return v||(l.items&&l.items[i]);});
-        out[year][qi][gw]={done:r.done||l.done||false,items:items,kollege:r.kollege||l.kollege||''};
+        // Messungen, Checked und Textfelder aus beiden Quellen zusammenführen (lokal gewinnt bei Konflikt)
+        var messungen=Object.assign({},r.messungen||{},l.messungen||{});
+        var checked=Object.assign({},r.checked||{},l.checked||{});
+        var textfelder=Object.assign({},r.textfelder||{},l.textfelder||{});
+        out[year][qi][gw]={done:r.done||l.done||false,items:items,kollege:r.kollege||l.kollege||'',messungen:messungen,checked:checked,textfelder:textfelder};
       });
     });
   });
@@ -2769,7 +2773,7 @@ function generateProtokoll(slug,year,qi){
   var ringleitungen=(anl&&anl.ringleitungen)||[];
   var netzteile=(anl&&anl.netzteile)||[];
   var meldegruppen=(anl&&anl.meldegruppen)||[];
-  var steuergruppen=(anl&&anl.steuergruppen)||[];
+  // Steuergruppen werden im Protokoll nicht dargestellt (nur in der Checkliste)
   var qNames=['Q1','Q2','Q3','Q4'];
   var qMonths=['Januar – März','April – Juni','Juli – September','Oktober – Dezember'];
 
@@ -3041,7 +3045,7 @@ function generateProtokoll(slug,year,qi){
       mgSeiten.push(meldegruppen.slice(i,i+MG_PRO_SEITE));
     }
   } else { mgSeiten=[[]]; }
-  var hatSeite2=(anl&&anl.waehlgeraet)||steuergruppen.length>0||mgSeiten.length>1;
+  var hatSeite2=(anl&&anl.waehlgeraet)||mgSeiten.length>1;
   var gesamtSeiten=1+(mgSeiten.length-1)+(hatSeite2?1:0);
 
   var p1='<div class="page">'
@@ -3070,13 +3074,12 @@ function generateProtokoll(slug,year,qi){
 
   // ── Seite 2: Netzteile + Steuergruppen ──────────────────────────────
   var seite2='';
-  if(hatSeite2&&((anl&&anl.waehlgeraet)||steuergruppen.length)){
+  if(hatSeite2&&(anl&&anl.waehlgeraet)){
     var s2nr=mgSeiten.length+1;
     seite2='<div class="page">'
       +pageHeader(s2nr,gesamtSeiten)
       +objektBlock()
       +waehlgeraetTabelle()
-      +steuergruppenTabelle()
       +unterschriften()
       +'</div>';
   }
