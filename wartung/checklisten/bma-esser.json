@@ -1,0 +1,106 @@
+{
+  "id": "bma-esser",
+  "name": "Checkliste Wartung BMA (Esser)",
+  "hersteller": "Esser",
+  "abschnitte": [
+    {
+      "id": "vorbereitung",
+      "titel": "Vorbereitung",
+      "punkte": [
+        { "id": "abmelden",        "text": "Anlage bei Leitstelle abmelden" },
+        { "id": "tty_ab",          "text": "TTY Schnittstelle (ESPA) abziehen" },
+        { "id": "prog_auslesen",   "text": "Programmierung auslesen" },
+        { "id": "melderdaten",     "text": "Melderdaten auslesen" }
+      ]
+    },
+    {
+      "id": "messwerte_bmz",
+      "titel": "Messwerte BMZ",
+      "punkte": [
+        {
+          "id": "messwerte_bmz",
+          "text": "Messwerte BMZ",
+          "messfelder": [
+            { "id": "akku1_erh",    "label": "Akku 1 – Erhaltungsladung",    "einheit": "V", "pflicht": true },
+            { "id": "akku1_30min",  "label": "Akku 1 – nach 30 min",         "einheit": "V", "pflicht": true },
+            { "id": "akku2_erh",    "label": "Akku 2 – Erhaltungsladung",    "einheit": "V", "pflicht": true },
+            { "id": "akku2_30min",  "label": "Akku 2 – nach 30 min",         "einheit": "V", "pflicht": true },
+            { "id": "strom_ruhe",   "label": "Strom Ruhe",                   "einheit": "A", "pflicht": true },
+            { "id": "strom_alarm",  "label": "Strom Alarm",                  "einheit": "A", "pflicht": true },
+            { "id": "plus_erde",    "label": "+Ub gegen Erde",               "einheit": "V", "pflicht": false },
+            { "id": "minus_erde",   "label": "−Ub gegen Erde",               "einheit": "V", "pflicht": false }
+          ],
+          "ringleitungen_dynamisch": true,
+          "ringleitung_einheit": "V"
+        }
+      ]
+    },
+    {
+      "id": "netzteile",
+      "titel": "Messwerte Netzteile (wenn vorhanden / Anlagendaten)",
+      "netzteile_dynamisch": true,
+      "punkte": [
+        {
+          "id": "netzteile_messen",
+          "text": "Messwerte Netzteile messen",
+          "messfelder_pro_netzteil": [
+            { "id": "nt_akku1_erh",    "label": "Akku 1 – Erhaltungsladung",    "einheit": "V", "pflicht": true },
+            { "id": "nt_akku1_30min",  "label": "Akku 1 – nach 30 min",         "einheit": "V", "pflicht": true },
+            { "id": "nt_akku2_erh",    "label": "Akku 2 – Erhaltungsladung",    "einheit": "V", "pflicht": true },
+            { "id": "nt_akku2_30min",  "label": "Akku 2 – nach 30 min",         "einheit": "V", "pflicht": true },
+            { "id": "nt_gesamt_erh",   "label": "Gesamt – Erhaltungsladung",    "einheit": "V", "pflicht": false },
+            { "id": "nt_gesamt_30min", "label": "Gesamt – nach 30 min",         "einheit": "V", "pflicht": false },
+            { "id": "nt_entl_sp",      "label": "Entladungsspannung 30 min",    "einheit": "V", "pflicht": true },
+            { "id": "nt_entl_strom",   "label": "Entladestrom Netzausfall",     "einheit": "A", "pflicht": true },
+            { "id": "nt_entl_alarm",   "label": "Entladestrom Netzausfall+Alarm","einheit": "A", "pflicht": true }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pruefung",
+      "titel": "Prüfung",
+      "punkte": [
+        { "id": "steuergruppen_ab", "text": "Steuergruppen abschalten" },
+        { "id": "melder_pruefen",   "text": "Melder prüfen" },
+        { "id": "pruefliste",       "text": "Melderprüfliste ausfüllen" },
+        { "id": "laufkarten",       "text": "Laufkarten überprüfen" },
+        { "id": "bmz_reset1",       "text": "BMZ Rücksetzen" },
+        { "id": "bse_einschalten",  "text": "Brandschutzeinrichtungen einschalten (FSK, Blitzlampe, Aufzug)" },
+        { "id": "tty_auf",          "text": "TTY Schnittstelle (ESPA) aufstecken" },
+        { "id": "bse_testen",       "text": "BSE und Schwesternruf Ansteuerung testen" },
+        { "id": "bmz_reset2",       "text": "BMZ Rücksetzen" },
+        { "id": "steuergruppen_ein","text": "Steuergruppen einschalten" }
+      ]
+    },
+    {
+      "id": "abschluss",
+      "titel": "Abschluss",
+      "punkte": [
+        {
+          "id": "maengel",
+          "text": "Mängel",
+          "textfeld": true,
+          "pflicht": false
+        },
+        {
+          "id": "bemerkungen",
+          "text": "Bemerkungen",
+          "textfeld": true,
+          "pflicht": false
+        },
+        {
+          "id": "material",
+          "text": "Material",
+          "textfeld": true,
+          "pflicht": false
+        },
+        { "id": "bmz_klar",         "text": "BMZ klar?" },
+        { "id": "anmelden",         "text": "Anlage bei Leitstelle anmelden" },
+        { "id": "aufkleber",        "text": "Wartungsaufkleber" },
+        { "id": "betriebsbuch",     "text": "Eintrag Betriebsbuch" },
+        { "id": "regiebericht",     "text": "Regiebericht" }
+      ]
+    }
+  ]
+}

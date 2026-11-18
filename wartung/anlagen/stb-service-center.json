@@ -1,0 +1,128 @@
+{
+  "slug": "stb-service-center",
+  "hersteller": "Esser",
+  "typ": "IQ8 Control-M",
+  "checkliste": "bma-esser",
+  "vernetzt": false,
+  "installationsort": "BMZ Raum 109",
+  "akkus": [
+    { "bezeichnung": "Akku 1", "typ": "Sun 12V 24Ah", "einbaudatum": "2025-06" },
+    { "bezeichnung": "Akku 2", "typ": "Sun 12V 24Ah", "einbaudatum": "2025-06" }
+  ],
+  "ringleitungen": [
+    { "nr": 131, "bezeichnung": "2.OG & 3.OG" },
+    { "nr": 132, "bezeichnung": "EG Halle" },
+    { "nr": 133, "bezeichnung": "EG & 1.OG" }
+  ],
+  "netzteile": [
+    {
+      "name": "DCU 1 – Akustik Lager / Mech.",
+      "typ": "DCU",
+      "betriebsart": "24V",
+      "akkus": [
+        { "bezeichnung": "Akku 1", "typ": "Sun 12V 2,3 Ah", "einbaudatum": "2024-12" },
+        { "bezeichnung": "Akku 2", "typ": "Sun 12V 2,3 Ah", "einbaudatum": "2024-12" }
+      ]
+    },
+    {
+      "name": "DCU 2 – RAS Lager",
+      "typ": "DCU",
+      "betriebsart": "24V",
+      "akkus": [
+        { "bezeichnung": "Akku 1", "typ": "Sun 12V 24 Ah", "einbaudatum": "2025-06" },
+        { "bezeichnung": "Akku 2", "typ": "Sun 12V 24 Ah", "einbaudatum": "2025-06" }
+      ]
+    },
+    {
+      "name": "DCU 3 – RAS Werkhalle",
+      "typ": "DCU",
+      "betriebsart": "24V",
+      "akkus": [
+        { "bezeichnung": "Akku 1", "typ": "Sun 12V 24 Ah", "einbaudatum": "2025-06" },
+        { "bezeichnung": "Akku 2", "typ": "Sun 12V 24 Ah", "einbaudatum": "2025-06" }
+      ]
+    },
+    {
+      "name": "DCU 4 – Akustik Lager",
+      "typ": "DCU",
+      "betriebsart": "24V",
+      "akkus": [
+        { "bezeichnung": "Akku 1", "typ": "Sun 12V 2,3 Ah", "einbaudatum": "2025-03" },
+        { "bezeichnung": "Akku 2", "typ": "Sun 12V 2,3 Ah", "einbaudatum": "2025-03" }
+      ]
+    }
+  ],
+  "meldegruppen": [
+    { "nr": 1,   "zusatztext": "AM BMZ R.109",                   "installationsort": 132, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 1  },
+    { "nr": 2,   "zusatztext": "AM BMZ ZD R.109",                "installationsort": 132, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 1  },
+    { "nr": 3,   "zusatztext": "FSE",                            "installationsort": 132, "typ": "Feuer", "meldertechnik": "Standard/NAM",   "anzahl": 0  },
+    { "nr": 4,   "zusatztext": "AM Flur 102",                    "installationsort": 133, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 2  },
+    { "nr": 5,   "zusatztext": "NAM Öllager 104",                "installationsort": 133, "typ": "Feuer", "meldertechnik": "Analog/NAM",     "anzahl": 1  },
+    { "nr": 6,   "zusatztext": "AM EG Service",                  "installationsort": 133, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 5  },
+    { "nr": 7,   "zusatztext": "AM ZD Service",                  "installationsort": 133, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 3  },
+    { "nr": 8,   "zusatztext": "AM Technik",                     "installationsort": 133, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 5  },
+    { "nr": 9,   "zusatztext": "AM Flur 110",                    "installationsort": 133, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 1  },
+    { "nr": 10,  "zusatztext": "AM ELT Werkstatt 116",           "installationsort": 133, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 1  },
+    { "nr": 11,  "zusatztext": "AM Abstellraum 101a",            "installationsort": 133, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 1  },
+    { "nr": 12,  "zusatztext": "NAM Treppenhaus 101 EG",         "installationsort": 133, "typ": "Feuer", "meldertechnik": "Analog/NAM",     "anzahl": 1  },
+    { "nr": 13,  "zusatztext": "AM Treppenhaus",                 "installationsort": 133, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 4  },
+    { "nr": 14,  "zusatztext": "NAM Mech. Werkstatt R.117",      "installationsort": 132, "typ": "Feuer", "meldertechnik": "Analog/NAM",     "anzahl": 1  },
+    { "nr": 15,  "zusatztext": "AM Mech.Werkstatt R.117",        "installationsort": 132, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 2  },
+    { "nr": 16,  "zusatztext": "NAM Lager R.118",                "installationsort": 132, "typ": "Feuer", "meldertechnik": "Analog/NAM",     "anzahl": 2  },
+    { "nr": 17,  "zusatztext": "RAS Lager R.118",                "installationsort": 132, "typ": "Feuer", "meldertechnik": "Standard/AM",    "anzahl": 0  },
+    { "nr": 18,  "zusatztext": "AM Lager R.118",                 "installationsort": 132, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 5  },
+    { "nr": 19,  "zusatztext": "NAM Wartungshalle R.119",        "installationsort": 132, "typ": "Feuer", "meldertechnik": "Analog/NAM",     "anzahl": 6  },
+    { "nr": 20,  "zusatztext": "RAS Halle Nord",                 "installationsort": 132, "typ": "Feuer", "meldertechnik": "Standard/AM",    "anzahl": 0  },
+    { "nr": 21,  "zusatztext": "RAS Halle Süd",                  "installationsort": 132, "typ": "Feuer", "meldertechnik": "Standard/AM",    "anzahl": 0  },
+    { "nr": 22,  "zusatztext": "NAM Flur 202",                   "installationsort": 133, "typ": "Feuer", "meldertechnik": "Analog/NAM",     "anzahl": 1  },
+    { "nr": 23,  "zusatztext": "AM Flur 202",                    "installationsort": 133, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 3  },
+    { "nr": 24,  "zusatztext": "AM ZD Flur 202",                 "installationsort": 133, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 4  },
+    { "nr": 25,  "zusatztext": "AM Büro Produktion 1.OG",        "installationsort": 133, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 4  },
+    { "nr": 26,  "zusatztext": "AM ZD Büro Produktion",          "installationsort": 133, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 5  },
+    { "nr": 27,  "zusatztext": "AM Sozial 1.OG",                 "installationsort": 133, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 3  },
+    { "nr": 28,  "zusatztext": "AM ZD Sanitär",                  "installationsort": 133, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 6  },
+    { "nr": 29,  "zusatztext": "NAM Flur 302",                   "installationsort": 131, "typ": "Feuer", "meldertechnik": "Analog/NAM",     "anzahl": 1  },
+    { "nr": 30,  "zusatztext": "AM ZD Flur 302",                 "installationsort": 131, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 4  },
+    { "nr": 31,  "zusatztext": "AM Flur 302",                    "installationsort": 131, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 3  },
+    { "nr": 32,  "zusatztext": "AM ZD Büro 2.OG",               "installationsort": 131, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 4  },
+    { "nr": 33,  "zusatztext": "AM Büro 2.OG",                   "installationsort": 131, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 4  },
+    { "nr": 34,  "zusatztext": "AM ZD 2.OG",                     "installationsort": 131, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 6  },
+    { "nr": 35,  "zusatztext": "AM 2.OG",                        "installationsort": 131, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 4  },
+    { "nr": 36,  "zusatztext": "NAM Flur 402 3.OG",              "installationsort": 131, "typ": "Feuer", "meldertechnik": "Analog/NAM",     "anzahl": 1  },
+    { "nr": 37,  "zusatztext": "AM Flur 402",                    "installationsort": 131, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 4  },
+    { "nr": 38,  "zusatztext": "AM ZD Flur 402",                 "installationsort": 131, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 5  },
+    { "nr": 39,  "zusatztext": "AM Sozial vorne 3.OG",           "installationsort": 131, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 4  },
+    { "nr": 40,  "zusatztext": "AM ZD Büros vorne 3.OG",         "installationsort": 131, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 4  },
+    { "nr": 41,  "zusatztext": "AM Sozial hinten 3.OG",          "installationsort": 131, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 4  },
+    { "nr": 42,  "zusatztext": "AM ZD Sozial hinten 3.OG",       "installationsort": 131, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 6  },
+    { "nr": 43,  "zusatztext": "AM Lüftung Abluft Kanal",        "installationsort": 131, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 1  },
+    { "nr": 44,  "zusatztext": "AM Lüftung Zuluft Kanal",        "installationsort": 131, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 1  },
+    { "nr": 45,  "zusatztext": "AM Heizung",                     "installationsort": 133, "typ": "Feuer", "meldertechnik": "Analog/AM",      "anzahl": 1  }
+  ],
+  "steuergruppen": [
+    { "nr": 11, "zusatztext": "Sammelstörung Zentrale",    "art": "Relais",                       "ansteuertyp": "Standard" },
+    { "nr": 12, "zusatztext": "Blitzleuchte",              "art": "Relais",                       "ansteuertyp": "überwacht 10 kOhm" },
+    { "nr": 13, "zusatztext": "FSK",                       "art": "Relais",                       "ansteuertyp": "überwacht 10 kOhm" },
+    { "nr": 14, "zusatztext": "ÜE Abschaltung",            "art": "Relais",                       "ansteuertyp": "überwacht 10 kOhm" },
+    { "nr": 15, "zusatztext": "Akustik BMZ R.109",         "art": "akust. Signalgeber IQ8Quad",   "ansteuertyp": "Alarmierungseinrichtung" },
+    { "nr": 16, "zusatztext": "Akustik Halle Nord Ost",    "art": "Relais",                       "ansteuertyp": "Alarmierungseinr. überwacht EOL-O" },
+    { "nr": 17, "zusatztext": "Konzi.Feuer",               "art": "Relais",                       "ansteuertyp": "Standard" },
+    { "nr": 18, "zusatztext": "Akustik Halle Süd-West",    "art": "Relais",                       "ansteuertyp": "Alarmierungseinr. überwacht EOL-O" },
+    { "nr": 19, "zusatztext": "Akustik Mech.Werkstatt",    "art": "Relais",                       "ansteuertyp": "Alarmierungseinr. überwacht" },
+    { "nr": 20, "zusatztext": "Akustik Lager",             "art": "Relais",                       "ansteuertyp": "Alarmierungseinr. überwacht" },
+    { "nr": 21, "zusatztext": "Akustik Lager Mitte",       "art": "Relais",                       "ansteuertyp": "Alarmierungseinr. überwacht" },
+    { "nr": 22, "zusatztext": "Akustik Büro 303",          "art": "akust. Signalgeber IQ8Quad",   "ansteuertyp": "Alarmierungseinrichtung" },
+    { "nr": 23, "zusatztext": "Lüftung Dach 1",            "art": "Relais",                       "ansteuertyp": "Brandschutzeinrichtung" },
+    { "nr": 24, "zusatztext": "Lüftung Dach 2",            "art": "Relais",                       "ansteuertyp": "Brandschutzeinrichtung" },
+    { "nr": 25, "zusatztext": "Jalousie (1)",              "art": "Relais",                       "ansteuertyp": "Brandschutzeinrichtung" },
+    { "nr": 26, "zusatztext": "Jalousie (2)",              "art": "Relais",                       "ansteuertyp": "Brandschutzeinrichtung" },
+    { "nr": 27, "zusatztext": "AM Akustik Flur 102",       "art": "akust. Signalgeber IQ8Quad",   "ansteuertyp": "Alarmierungseinrichtung" },
+    { "nr": 28, "zusatztext": "FSA 3 EG",                  "art": "Relais",                       "ansteuertyp": "Brandschutzeinrichtung" },
+    { "nr": 29, "zusatztext": "Absaugung Halle/Mech",      "art": "Relais",                       "ansteuertyp": "Brandschutzeinrichtung" },
+    { "nr": 30, "zusatztext": "Heizlüfter Halle",          "art": "Relais",                       "ansteuertyp": "Brandschutzeinrichtung" },
+    { "nr": 31, "zusatztext": "FSA1/FSA2 (1)",             "art": "Relais",                       "ansteuertyp": "Brandschutzeinrichtung" },
+    { "nr": 32, "zusatztext": "FSA1/FSA2 (2)",             "art": "Relais",                       "ansteuertyp": "Brandschutzeinrichtung" },
+    { "nr": 33, "zusatztext": "Schranke",                  "art": "Relais",                       "ansteuertyp": "Brandschutzeinrichtung" },
+    { "nr": 34, "zusatztext": "FSA 3 EG (2)",              "art": "Relais",                       "ansteuertyp": "Brandschutzeinrichtung" }
+  ]
+}
