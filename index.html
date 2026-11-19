@@ -1831,7 +1831,7 @@ var BMA_ANL_LS='wart_bma_anl_v1';
 var BMA_TPL_LS='wart_bma_tpl_v1';
 
 // Inline-Fallback: Template ist immer verfügbar, auch ohne GitHub/Netzwerk
-var BMA_TEMPLATES_INLINE={'bma-esser':{"id":"bma-esser","name":"Checkliste Wartung BMA (Esser)","hersteller":"Esser","abschnitte":[{"id":"vorbereitung","titel":"Vorbereitung","punkte":[{"id":"abmelden","text":"Anlage bei Leitstelle abmelden"},{"id":"tty_ab","text":"TTY Schnittstelle (ESPA) abziehen"},{"id":"prog_auslesen","text":"Programmierung auslesen"},{"id":"melderdaten","text":"Melderdaten auslesen"}]},{"id":"messwerte_bmz","titel":"Messwerte BMZ","punkte":[{"id":"messwerte_bmz","text":"Messwerte BMZ","messfelder":[{"id":"akku1_erh","label":"Akku 1 – Erhaltungsladung","einheit":"V","pflicht":true},{"id":"akku1_30min","label":"Akku 1 – nach 30 min","einheit":"V","pflicht":true},{"id":"akku2_erh","label":"Akku 2 – Erhaltungsladung","einheit":"V","pflicht":true},{"id":"akku2_30min","label":"Akku 2 – nach 30 min","einheit":"V","pflicht":true},{"id":"strom_ruhe","label":"Strom Ruhe","einheit":"A","pflicht":true},{"id":"strom_alarm","label":"Strom Alarm","einheit":"A","pflicht":true},{"id":"plus_erde","label":"+Ub gegen Erde","einheit":"V","pflicht":false},{"id":"minus_erde","label":"−Ub gegen Erde","einheit":"V","pflicht":false}],"ringleitungen_dynamisch":true,"ringleitung_einheit":"V"}]},{"id":"netzteile","titel":"Messwerte Netzteile (wenn vorhanden / Anlagendaten)","netzteile_dynamisch":true,"punkte":[{"id":"netzteile_messen","text":"Messwerte Netzteile messen","messfelder_pro_netzteil":[{"id":"nt_akku1_erh","label":"Akku 1 – Erhaltungsladung","einheit":"V","pflicht":true},{"id":"nt_akku1_30min","label":"Akku 1 – nach 30 min","einheit":"V","pflicht":true},{"id":"nt_akku2_erh","label":"Akku 2 – Erhaltungsladung","einheit":"V","pflicht":true},{"id":"nt_akku2_30min","label":"Akku 2 – nach 30 min","einheit":"V","pflicht":true},{"id":"nt_entl_sp","label":"Entladungsspannung 30 min","einheit":"V","pflicht":true},{"id":"nt_entl_strom","label":"Entladestrom Netzausfall","einheit":"A","pflicht":true},{"id":"nt_entl_alarm","label":"Entladestrom Netzausfall+Alarm","einheit":"A","pflicht":true}]}]},{"id":"pruefung","titel":"Prüfung","punkte":[{"id":"steuergruppen_ab","text":"Steuergruppen abschalten"},{"id":"melder_pruefen","text":"Melder prüfen"},{"id":"pruefliste","text":"Melderprüfliste ausfüllen","link":"https://elektrokrieg.github.io/melderpruefliste"},{"id":"laufkarten","text":"Laufkarten überprüfen"},{"id":"bmz_reset1","text":"BMZ Rücksetzen"},{"id":"bse_einschalten","text":"Brandschutzeinrichtungen einschalten (FSK, Blitzlampe, Aufzug)"},{"id":"tty_auf","text":"TTY Schnittstelle (ESPA) aufstecken"},{"id":"bse_testen","text":"BSE und Schwesternruf Ansteuerung testen"},{"id":"bmz_reset2","text":"BMZ Rücksetzen"},{"id":"steuergruppen_ein","text":"Steuergruppen einschalten"}]},{"id":"abschluss","titel":"Abschluss","punkte":[{"id":"maengel","text":"Mängel","textfeld":true,"pflicht":false},{"id":"bemerkungen","text":"Bemerkungen","textfeld":true,"pflicht":false},{"id":"material","text":"Material","textfeld":true,"pflicht":false},{"id":"bmz_klar","text":"BMZ klar?"},{"id":"anmelden","text":"Anlage bei Leitstelle anmelden"},{"id":"aufkleber","text":"Wartungsaufkleber"},{"id":"betriebsbuch","text":"Eintrag Betriebsbuch"},{"id":"regiebericht","text":"Regiebericht","link":"https://elektrokrieg.github.io/regiebericht"}]}]}};
+var BMA_TEMPLATES_INLINE={'bma-esser':{"id":"bma-esser","name":"Checkliste Wartung BMA (Esser)","hersteller":"Esser","abschnitte":[{"id":"vorbereitung","titel":"Vorbereitung","punkte":[{"id":"abmelden","text":"Anlage bei Leitstelle abmelden"},{"id":"tty_ab","text":"TTY Schnittstelle (ESPA) abziehen"},{"id":"prog_auslesen","text":"Programmierung auslesen"},{"id":"melderdaten","text":"Melderdaten auslesen"}]},{"id":"messwerte_bmz","titel":"Messwerte BMZ","punkte":[{"id":"messwerte_bmz","text":"Messwerte BMZ","messfelder":[{"id":"akku1_erh","label":"Akku 1 – Erhaltungsladung","einheit":"V","pflicht":true},{"id":"akku1_30min","label":"Akku 1 – nach 30 min","einheit":"V","pflicht":true},{"id":"akku2_erh","label":"Akku 2 – Erhaltungsladung","einheit":"V","pflicht":true},{"id":"akku2_30min","label":"Akku 2 – nach 30 min","einheit":"V","pflicht":true},{"id":"strom_ruhe","label":"Strom Ruhe","einheit":"A","pflicht":true},{"id":"strom_alarm","label":"Strom Alarm","einheit":"A","pflicht":true},{"id":"plus_erde","label":"+Ub gegen Erde","einheit":"V","pflicht":false},{"id":"minus_erde","label":"−Ub gegen Erde","einheit":"V","pflicht":false}],"ringleitungen_dynamisch":true,"ringleitung_einheit":"V"}]},{"id":"messwerte_waehlgeraet","titel":"Messwerte Wählgerät","waehlgeraet_dynamisch":true,"punkte":[{"id":"messwerte_wg","text":"Messwerte Wählgerät","messfelder":[{"id":"wg_akku_erh","label":"Akku – Erhaltungsladung","einheit":"V","pflicht":true},{"id":"wg_akku_30min","label":"Akku – nach 30 min","einheit":"V","pflicht":true},{"id":"wg_strom_ruhe","label":"Strom Ruhe","einheit":"A","pflicht":false},{"id":"wg_plus_erde","label":"+Ub gegen Erde","einheit":"V","pflicht":false},{"id":"wg_minus_erde","label":"−Ub gegen Erde","einheit":"V","pflicht":false}]}]},{"id":"netzteile","titel":"Messwerte Netzteile (wenn vorhanden / Anlagendaten)","netzteile_dynamisch":true,"punkte":[{"id":"netzteile_messen","text":"Messwerte Netzteile messen","messfelder_pro_netzteil":[{"id":"nt_akku1_erh","label":"Akku 1 – Erhaltungsladung","einheit":"V","pflicht":true},{"id":"nt_akku1_30min","label":"Akku 1 – nach 30 min","einheit":"V","pflicht":true},{"id":"nt_akku2_erh","label":"Akku 2 – Erhaltungsladung","einheit":"V","pflicht":true},{"id":"nt_akku2_30min","label":"Akku 2 – nach 30 min","einheit":"V","pflicht":true},{"id":"nt_entl_sp","label":"Entladungsspannung 30 min","einheit":"V","pflicht":true},{"id":"nt_entl_strom","label":"Entladestrom Netzausfall","einheit":"A","pflicht":true},{"id":"nt_entl_alarm","label":"Entladestrom Netzausfall+Alarm","einheit":"A","pflicht":true}]}]},{"id":"pruefung","titel":"Prüfung","punkte":[{"id":"steuergruppen_ab","text":"Steuergruppen abschalten"},{"id":"melder_pruefen","text":"Melder prüfen"},{"id":"pruefliste","text":"Melderprüfliste ausfüllen","link":"https://elektrokrieg.github.io/melderpruefliste"},{"id":"laufkarten","text":"Laufkarten überprüfen"},{"id":"bmz_reset1","text":"BMZ Rücksetzen"},{"id":"bse_einschalten","text":"Brandschutzeinrichtungen einschalten (FSK, Blitzlampe, Aufzug)"},{"id":"tty_auf","text":"TTY Schnittstelle (ESPA) aufstecken"},{"id":"bse_testen","text":"BSE und Schwesternruf Ansteuerung testen"},{"id":"bmz_reset2","text":"BMZ Rücksetzen"},{"id":"steuergruppen_ein","text":"Steuergruppen einschalten"}]},{"id":"abschluss","titel":"Abschluss","punkte":[{"id":"maengel","text":"Mängel","textfeld":true,"pflicht":false},{"id":"bemerkungen","text":"Bemerkungen","textfeld":true,"pflicht":false},{"id":"material","text":"Material","textfeld":true,"pflicht":false},{"id":"bmz_klar","text":"BMZ klar?"},{"id":"anmelden","text":"Anlage bei Leitstelle anmelden"},{"id":"aufkleber","text":"Wartungsaufkleber"},{"id":"betriebsbuch","text":"Eintrag Betriebsbuch"},{"id":"regiebericht","text":"Regiebericht","link":"https://elektrokrieg.github.io/regiebericht"}]}]}};
 
 try{BMA_ANLAGEN_CACHE=JSON.parse(localStorage.getItem(BMA_ANL_LS)||'{}');}catch(e){}
 try{BMA_CHKLST_CACHE=JSON.parse(localStorage.getItem(BMA_TPL_LS)||'{}');}catch(e){}
@@ -2679,6 +2679,7 @@ function renderBmaCheckItems(tmpl,anl,st,isDone){
   var textfelder=st.textfelder||{};
   var ringleitungen=(anl&&anl.ringleitungen)||[];
   var netzteile=(anl&&anl.netzteile)||[];
+  var hatWaehlgeraet=!!(anl&&anl.waehlgeraet&&(anl.waehlgeraet.typ||anl.waehlgeraet.meldungen&&anl.waehlgeraet.meldungen.length));
   var dis=isDone?' disabled':'';
   var auf=getAufschaltungInfo(anl);
   var html='';
@@ -2691,6 +2692,8 @@ function renderBmaCheckItems(tmpl,anl,st,isDone){
   tmpl.abschnitte.forEach(function(abschnitt){
     // Netzteile-Abschnitt ausblenden wenn keine Netzteile in Anlagendaten
     if(abschnitt.netzteile_dynamisch&&!netzteile.length)return;
+    // Wählgerät-Abschnitt ausblenden wenn kein Wählgerät in Anlagendaten
+    if(abschnitt.waehlgeraet_dynamisch&&!hatWaehlgeraet)return;
     html+='<div class="chk-section-title">'+escHtml(abschnitt.titel)+'</div>';
     abschnitt.punkte.forEach(function(punkt){
       var pid=abschnitt.id+'_'+punkt.id;
@@ -3148,6 +3151,41 @@ function generateProtokoll(slug,year,qi){
   }
 
   // ── Wählgerät-Tabelle (Seite 2) ──────────────────────────────────────
+  function wgSpannungTabelle(){
+    var wg=anl&&anl.waehlgeraet;
+    if(!wg)return '';
+    var wae=v('wg_akku_erh'), wam=v('wg_akku_30min');
+    var wsr=v('wg_strom_ruhe'), wpe=v('wg_plus_erde'), wme=v('wg_minus_erde');
+    // Nur anzeigen wenn mindestens ein Wert vorhanden
+    if(!wae&&!wam&&!wsr&&!wpe&&!wme)return '';
+    var html2='<h3>Akkuspannung Wählgerät</h3>'
+      +'<table><thead><tr>'
+      +'<th style="width:46%"></th>'
+      +'<th class="akku-th" style="width:26%">Akku</th>'
+      +'<th style="width:28%">Einheit</th>'
+      +'</tr></thead><tbody>';
+    html2+='<tr class="grau"><td class="akku-lbl">Bei Erhaltungsladung</td>'
+      +'<td class="c b">'+(wae||'–')+'</td><td class="c">V</td></tr>';
+    html2+='<tr><td class="akku-lbl">Dauer der Entladung</td>'
+      +'<td class="c">30 min</td><td class="c">min</td></tr>';
+    html2+='<tr class="grau"><td class="akku-lbl">Entladungsspannung nach 30 min</td>'
+      +'<td class="c b">'+(wam||'–')+'</td><td class="c">V</td></tr>';
+    if(wsr){
+      html2+='<tr><td class="akku-lbl">Strom Ruhe</td>'
+        +'<td class="c b">'+esc(wsr)+'</td><td class="c">A</td></tr>';
+    }
+    html2+='</tbody></table>';
+    if(wpe||wme){
+      html2+='<table style="margin-top:3pt;"><tbody>'
+        +'<tr><td class="akku-lbl" style="width:46%;background:#f0f0f0;font-weight:700;">+Ub gegen Erde</td>'
+        +'<td class="c b" style="width:26%">'+(wpe||'–')+' V</td>'
+        +'<td class="akku-lbl" style="background:#f0f0f0;font-weight:700;">−Ub gegen Erde</td>'
+        +'<td class="c b">'+(wme||'–')+' V</td></tr>'
+        +'</tbody></table>';
+    }
+    return html2;
+  }
+
   function waehlgeraetTabelle(){
     var wg=anl&&anl.waehlgeraet;
     if(!wg)return '';
@@ -3231,6 +3269,7 @@ function generateProtokoll(slug,year,qi){
     +pageHeader(1,gesamtSeiten)
     +objektBlock()
     +akkuTabelle()
+    +wgSpannungTabelle()
     +geraetepruefung()
     +waehlgeraetTabelle()
     +'<h3>Prüfabschluss</h3>'
