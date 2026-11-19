@@ -3150,42 +3150,6 @@ function generateProtokoll(slug,year,qi){
     return html2;
   }
 
-  // ── Wählgerät-Tabelle (Seite 2) ──────────────────────────────────────
-  function wgSpannungTabelle(){
-    var wg=anl&&anl.waehlgeraet;
-    if(!wg)return '';
-    var wae=v('wg_akku_erh'), wam=v('wg_akku_30min');
-    var wsr=v('wg_strom_ruhe'), wpe=v('wg_plus_erde'), wme=v('wg_minus_erde');
-    // Nur anzeigen wenn mindestens ein Wert vorhanden
-    if(!wae&&!wam&&!wsr&&!wpe&&!wme)return '';
-    var html2='<h3>Akkuspannung Wählgerät</h3>'
-      +'<table><thead><tr>'
-      +'<th style="width:46%"></th>'
-      +'<th class="akku-th" style="width:26%">Akku</th>'
-      +'<th style="width:28%">Einheit</th>'
-      +'</tr></thead><tbody>';
-    html2+='<tr class="grau"><td class="akku-lbl">Bei Erhaltungsladung</td>'
-      +'<td class="c b">'+(wae||'–')+'</td><td class="c">V</td></tr>';
-    html2+='<tr><td class="akku-lbl">Dauer der Entladung</td>'
-      +'<td class="c">30 min</td><td class="c">min</td></tr>';
-    html2+='<tr class="grau"><td class="akku-lbl">Entladungsspannung nach 30 min</td>'
-      +'<td class="c b">'+(wam||'–')+'</td><td class="c">V</td></tr>';
-    if(wsr){
-      html2+='<tr><td class="akku-lbl">Strom Ruhe</td>'
-        +'<td class="c b">'+esc(wsr)+'</td><td class="c">A</td></tr>';
-    }
-    html2+='</tbody></table>';
-    if(wpe||wme){
-      html2+='<table style="margin-top:3pt;"><tbody>'
-        +'<tr><td class="akku-lbl" style="width:46%;background:#f0f0f0;font-weight:700;">+Ub gegen Erde</td>'
-        +'<td class="c b" style="width:26%">'+(wpe||'–')+' V</td>'
-        +'<td class="akku-lbl" style="background:#f0f0f0;font-weight:700;">−Ub gegen Erde</td>'
-        +'<td class="c b">'+(wme||'–')+' V</td></tr>'
-        +'</tbody></table>';
-    }
-    return html2;
-  }
-
   function waehlgeraetTabelle(){
     var wg=anl&&anl.waehlgeraet;
     if(!wg)return '';
@@ -3206,7 +3170,7 @@ function generateProtokoll(slug,year,qi){
     });
     if(!ml.length)html2+='<tr><td colspan="3" class="c" style="color:#aaa;">Keine Meldungen hinterlegt</td></tr>';
     html2+='</tbody></table>';
-    // Akkus Wählgerät
+    // Akkus Wählgerät (Einbaudaten)
     var wgAkkus=wg.akkus||[];
     if(wgAkkus.length){
       html2+='<table style="margin-top:3pt;"><thead><tr>'
@@ -3220,6 +3184,35 @@ function generateProtokoll(slug,year,qi){
           +'</tr>';
       });
       html2+='</tbody></table>';
+    }
+    // Akkuspannung Wählgerät (Messwerte)
+    var wae=v('wg_akku_erh'), wam=v('wg_akku_30min');
+    var wsr=v('wg_strom_ruhe'), wpe=v('wg_plus_erde'), wme=v('wg_minus_erde');
+    if(wae||wam||wsr||wpe||wme){
+      html2+='<table style="margin-top:3pt;"><thead><tr>'
+        +'<th style="width:46%">Akkuspannung</th>'
+        +'<th class="akku-th" style="width:26%">Wert</th>'
+        +'<th style="width:28%">Einheit</th>'
+        +'</tr></thead><tbody>';
+      html2+='<tr class="grau"><td class="akku-lbl">Bei Erhaltungsladung</td>'
+        +'<td class="c b">'+(wae||'–')+'</td><td class="c">V</td></tr>';
+      html2+='<tr><td class="akku-lbl">Dauer der Entladung</td>'
+        +'<td class="c">30 min</td><td class="c">min</td></tr>';
+      html2+='<tr class="grau"><td class="akku-lbl">Entladungsspannung nach 30 min</td>'
+        +'<td class="c b">'+(wam||'–')+'</td><td class="c">V</td></tr>';
+      if(wsr){
+        html2+='<tr><td class="akku-lbl">Strom Ruhe</td>'
+          +'<td class="c b">'+esc(wsr)+'</td><td class="c">A</td></tr>';
+      }
+      html2+='</tbody></table>';
+      if(wpe||wme){
+        html2+='<table style="margin-top:3pt;"><tbody>'
+          +'<tr><td class="akku-lbl" style="width:46%;background:#f0f0f0;font-weight:700;">+Ub gegen Erde</td>'
+          +'<td class="c b" style="width:26%">'+(wpe||'–')+' V</td>'
+          +'<td class="akku-lbl" style="background:#f0f0f0;font-weight:700;">−Ub gegen Erde</td>'
+          +'<td class="c b">'+(wme||'–')+' V</td></tr>'
+          +'</tbody></table>';
+      }
     }
     return html2;
   }
@@ -3264,14 +3257,12 @@ function generateProtokoll(slug,year,qi){
   var hatMeldegruppen=mgSeiten.length>0;
   var gesamtSeiten=1+mgSeiten.length;
 
-  // Seite 1: Stammdaten + Wählgerät + Prüfabschluss
+  // Seite 1: Stammdaten + Akkuspannung BMZ + Geräteprüfung + Prüfabschluss
   var p1='<div class="page">'
     +pageHeader(1,gesamtSeiten)
     +objektBlock()
     +akkuTabelle()
-    +wgSpannungTabelle()
     +geraetepruefung()
-    +waehlgeraetTabelle()
     +'<h3>Prüfabschluss</h3>'
     +'<div class="notiz-lbl">Bemerkungen:</div><div class="notiz">'+tf('bemerkungen')+'</div>'
     +'<div class="notiz-lbl">Mängel:</div><div class="notiz">'+tf('maengel')+'</div>'
@@ -3279,14 +3270,16 @@ function generateProtokoll(slug,year,qi){
     +unterschriften()
     +'</div>';
 
-  // Seite 2+: Meldegruppen
+  // Seite 2+: Meldegruppen; letzte MG-Seite auch Wählgerät
   var extraSeiten='';
   for(var s=0;s<mgSeiten.length;s++){
+    var istLetzte=s===mgSeiten.length-1;
     extraSeiten+='<div class="page">'
       +pageHeader(2+s,gesamtSeiten)
       +objektBlock()
       +meldegruppenTabelle(mgSeiten[s],s===0?null:'Meldegruppen (Fortsetzung)')
-      +(s===mgSeiten.length-1?unterschriften():'')
+      +(istLetzte?waehlgeraetTabelle():'')
+      +(istLetzte?unterschriften():'')
       +'</div>';
   }
   var seite2='';
